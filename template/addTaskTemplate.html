@@ -11,8 +11,8 @@
             <div class="select-selected">
                 <div id="original-placeholder">Select contacts to assign</div>
                 <input type="text" class="inputClass" id="contact-search" placeholder="" oninput="filterContacts()">
-                <img id="open-contact-list" src="assets/img/arrow_drop_down_open.png">
-                <img id="close-contact-list" class="d-none" src="assets/img/arrow_drop_down_close.png">
+                <img id="open-contact-list" src="./assets/img/arrow_drop_down_open.png">
+                <img id="close-contact-list" class="d-none" src="./assets/img/arrow_drop_down_close.png">
             </div>
             <div id="at-contact-container" class="select-items select-hide"></div>
         </div>
@@ -29,18 +29,18 @@
         <div class="at-prio-container  at-prio-container-template">
             <div onclick="setBackgroundColorPrio('urgent')" id="urgent" class="at-prio-item at-prio-item-template">
                 <div>Urgent</div>
-                <img id="urgent-img-deactive" src="assets/img/urgent.png">
-                <img id="urgent-img-active" src="assets/img/urgent-white.png" style="display: none;">
+                <img id="urgent-img-deactive" src="./assets/img/urgent.png">
+                <img id="urgent-img-active" src="./assets/img/urgent-white.png" style="display: none;">
             </div>
             <div onclick="setBackgroundColorPrio('medium')" id="medium" class="at-prio-item at-prio-item-template">
                 <div>Medium</div>
-                <img id="medium-img-deactive" src="assets/img/medium.png">
-                <img id="medium-img-active" src="assets/img/medium-white.png" style="display: none;">
+                <img id="medium-img-deactive" src="./assets/img/medium.png">
+                <img id="medium-img-active" src="./assets/img/medium-white.png" style="display: none;">
             </div>
             <div onclick="setBackgroundColorPrio('low')" id="low" class="at-prio-item at-prio-item-template">
                 <div>Low</div>
-                <img id="low-img-deactive" src="assets/img/low.png">
-                <img id="low-img-active" src="assets/img/low-white.png" style="display: none;">
+                <img id="low-img-deactive" src="./assets/img/low.png">
+                <img id="low-img-active" src="./assets/img/low-white.png" style="display: none;">
             </div>
         </div>
         <div id="category-headline" class="at-input-headlines">Category<div class="required-star">*</div>
@@ -48,8 +48,8 @@
         <div class="custom-category-select fs16" id="category-input">
             <div class="select-category-selected">
                 <div>Select task category</div>
-                <img id="open-category-list" src="assets/img/arrow_drop_down_open.png">
-                <img id="close-category-list" class="d-none" src="assets/img/arrow_drop_down_close.png">
+                <img id="open-category-list" src="./assets/img/arrow_drop_down_open.png">
+                <img id="close-category-list" class="d-none" src="./assets/img/arrow_drop_down_close.png">
             </div>
             <div id="at-category-container" class="select-category-items">
                 <div class="at-contact-layout">
@@ -66,11 +66,11 @@
             <input onclick="activateSubcategory()" class="at-input-date at-input-subcategory at-input-subcategory-template" type="text" id="add-subcategory"
                 placeholder="Add new subtask">
             <div class="at-subcategory-btn-container">
-                <img onclick="clearInputSubcategory(event)" class="d-none" src="assets/img/clear.png" id="at-subcategory-clear">
+                <img onclick="clearInputSubcategory(event)" class="d-none" src="./assets/img/clear.png" id="at-subcategory-clear">
                 <div class="small-border-container d-none" id="at-subcategory-border"></div>
-                <img onclick="renderSubcategory()" class="d-none" src="assets/img/checkOkDarrk.png"
+                <img onclick="renderSubcategory()" class="d-none" src="./assets/img/checkOkDarrk.png"
                     id="at-subcategory-confirm">
-                <img src="assets/img/add-black.png" id="at-subcategory-open">
+                <img src="./assets/img/add-black.png" id="at-subcategory-open">
             </div>
         </div>
         <div id="added-subcategories" class="added-subcategories-template"></div>
@@ -89,7 +89,7 @@
             </svg>
         </div>
         <div onclick="addTask()" class="at-create-btn  at-create-btn-mobile">
-            <div>Create Task</div><img src="assets/img/check(ok).png">
+            <div>Create Task</div><img src="./assets/img/check(ok).png">
         </div>
     </div>
 </div>

@@ -39,7 +39,7 @@ function getSignUpPopup() {
   let newUser = createNewUser(name, email, password);
 
   try {
-    await postUserData('/users', newUser);
+    await postUserData('./users', newUser);
     showSignUpPopup();
     setTimeout(hideSignUpPopupAndRedirect, 3000);
   } catch (error) {
@@ -125,14 +125,14 @@ function toggleCheckbox(img) {
   let signUpButton = document.querySelector(".signUp");
   if (checkmark.style.display === "none") { 
     checkmark.style.display = "block";
-    img.src = "/assets/img/chackBox.png";
+    img.src = "./assets/img/chackBox.png";
     signUpButton.classList.add("signUpHover");
     document.querySelector(".acceptCheckbox").classList.remove("redLine");
     document.querySelector(".signUp").style.marginTop = "1px";
     isChecked = true;
   } else {
     checkmark.style.display = "none";
-    img.src = "/assets/img/emptyCheckbox.png";
+    img.src = "./assets/img/emptyCheckbox.png";
     signUpButton.classList.remove("signUpHover");
     isChecked = false;
   }

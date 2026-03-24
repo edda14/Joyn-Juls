@@ -14,10 +14,10 @@ async function summeryInit() {
 function redirectToBoard(sectionId) {
   if (sectionId) {
      
-      window.location.href = `board.html#${sectionId}`;
+      window.location.href = `./board.html#${sectionId}`;
   } else {
       
-      window.location.href = "board.html";
+      window.location.href = "./board.html";
   }
 }
 

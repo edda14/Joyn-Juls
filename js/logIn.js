@@ -15,7 +15,7 @@ async function logInInit() {
 
 
 function redirectToSignup() {
-  window.location.href = "signUp.html";
+  window.location.href = "./signUp.html";
 }
 
 
@@ -136,7 +136,7 @@ function isValidUser(user, password) {
 
 
 function redirectToSummary() {
-  window.location.href = "/summary.html";
+  window.location.href = "./summary.html";
 }
 
 function guestLogin() {

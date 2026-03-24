@@ -540,7 +540,7 @@ function goToBoard() {
     let addedNote = document.getElementById('task-added-note');
     addedNote.classList.add('confirmation-task-creation-shown');
     setTimeout(function () {
-        window.location.href = 'board.html';
+        window.location.href = './board.html';
     }, 2000);
 }
 

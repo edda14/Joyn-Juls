@@ -93,7 +93,7 @@ async function logout() {
    } 
   }
    clearStorage();
-   window.location.href = "/index.html";
+   window.location.href = "./index.html";
 }
 
 function getTaskTemplate(toDo, i, taskTypeBackgroundColor, taskType, taskAssignee, taskPriorityIcon, completedSubtasks, editSubtask, id, subtaskHTML) {

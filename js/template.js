@@ -6,20 +6,7 @@ async function initTemplate() {
     showInitials();
 }
 
-// async function includeHTML() {
-//     let includeElements = document.querySelectorAll('[w3-include-html]');
-//     for (let i = 0; i < includeElements.length; i++) {
-//         let element = includeElements[i];
-//         file = element.getAttribute("w3-include-html");
-//         let resp = await fetch(file);
-//         if (resp.ok) {
-//             element.innerHTML = await resp.text();
-//         } else {
-//             element.innerHTML = 'Page not found';
-//         }
-//     }
-//     currentPage();
-// }
+
 async function includeHTML() {
     let includeElements = document.querySelectorAll('[w3-include-html]');
     let basePath = window.location.pathname.includes('Joyn-Juls') ? '/Joyn-Juls/' : '/';

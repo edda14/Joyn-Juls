@@ -62,26 +62,26 @@ async function addTaskBoard() {
 async function loadDataTask(path = "/task") {
   let response = await fetch(BASE_URL + path + ".json");
   let responseToJson = await response.json();
-
-  if (responseToJson) {
-      tasks = []; // Clear existing tasks
-      let taskKeysArray = Object.keys(responseToJson);
-
-      for (let i = 0; i < taskKeysArray.length; i++) {
-          let taskData = responseToJson[taskKeysArray[i]];
-          tasks.push({
-              id: taskKeysArray[i],
-              title: taskData.title,
-              description: taskData.description,
-              assignedTo: taskData.assignedTo || [],
-              date: taskData.date,
-              prio: taskData.prio,
-              category: taskData.category,
-              subcategory: taskData.subcategory || [],
-              completedSubtasks: taskData.completedSubtasks || [],
-              status: taskData.status
-          });
-      }
+  tasks = [];
+  if (!responseToJson) {
+    console.warn("Keine Tasks gefunden oder Firebase gibt null zurück.");
+    return;
+  }
+  let taskKeysArray = Object.keys(responseToJson);
+  for (let i = 0; i < taskKeysArray.length; i++) {
+    let taskData = responseToJson[taskKeysArray[i]];
+    tasks.push({
+      id: taskKeysArray[i],
+      title: taskData.title,
+      description: taskData.description,
+      assignedTo: taskData.assignedTo || [],
+      date: taskData.date,
+      prio: taskData.prio,
+      category: taskData.category,
+      subcategory: taskData.subcategory || [],
+      completedSubtasks: taskData.completedSubtasks || [],
+      status: taskData.status || "toDo",
+    });
   }
 }
 
@@ -135,7 +135,7 @@ async function postContact(path, newContact) {
 
 async function deleteDataContact(path = "") {
   let response = await fetch(BASE_URL + path + ".json", {
-      method: "DELETE",
+    method: "DELETE",
   });
   return responseToJson = await response.json();
 }
@@ -149,9 +149,12 @@ async function deleteContact(contact) {
 
 async function loadDataContacts(path = "/contacts") {
   let response = await fetch(BASE_URL + path + ".json");
-  responseToJson = await response.json();
-
+  let responseToJson = await response.json();
   contacts = [];
+  if (!responseToJson) {
+    console.warn("Keine Kontakte gefunden oder Firebase gibt null zurück.");
+    return;
+  }
   let contactsKeysArray = Object.keys(responseToJson);
   for (let i = 0; i < contactsKeysArray.length; i++) {
     contacts.push({
@@ -172,8 +175,12 @@ async function fetchUserData(path) {
 
 async function loadUserData() {
   let userResponse = await fetchUserData("users");
+  users = [];
+  if (!userResponse) {
+    console.warn("Keine User gefunden oder Firebase gibt null zurück.");
+    return;
+  }
   let userKeysArray = Object.keys(userResponse);
-
   for (let index = 0; index < userKeysArray.length; index++) {
     users.push({
       id: userKeysArray[index],
@@ -196,27 +203,20 @@ async function postUserData(path, newUser) {
 }
 
 async function deleteTask(id) {
-    
-    await deleteDataTask(`/task/${id}`);
-
-    
-    await loadDataTask();
-
-    
-    renderTasks();
+  await deleteDataTask(`/task/${id}`);
+  await loadDataTask();
+  renderTasks();
 }
 
 async function deleteDataTask(path) {
-    let response = await fetch(BASE_URL + path + ".json", {
-        method: "DELETE"
-    });
-    return response.json();
+  let response = await fetch(BASE_URL + path + ".json", {
+    method: "DELETE"
+  });
+  return response.json();
 }
 
 async function saveTaskChanges(id) {
   await loadDataTask(); // Call loadDataTask to populate the tasks array
-  
-
   const taskTitle = document.getElementById('task-title').value.trim() || 'Untitled';
   const taskDescription = document.getElementById('at-description').value.trim() || 'No description';
   const taskDueDate = document.getElementById('task-due-date').value || new Date().toISOString().split('T')[0];
@@ -254,7 +254,7 @@ async function saveTaskChanges(id) {
     const contactInitials = input.getAttribute('data-contact-initials');
     return { id: contactId, color: contactColor, initial: contactInitials };
   });
-  
+
 
   const updatedTask = {
     title: taskTitle,
@@ -262,13 +262,12 @@ async function saveTaskChanges(id) {
     date: taskDueDate,
     prio: taskPriority,
     subcategory: subcategories.length > 0 ? subcategories : existingTask.subcategory, // Use the updated subcategories if they exist, otherwise use the existing ones
-    assignedTo: assignedToContacts.length > 0 ? assignedToContacts : existingTask.assignedTo, 
+    assignedTo: assignedToContacts.length > 0 ? assignedToContacts : existingTask.assignedTo,
     status: existingTask.status, // Use the existing status
     category: existingTask.category,
     completedSubtasks: existingTask.completedSubtasks,
   };
 
-  
 
   try {
     // Überprüfen, was an das Backend gesendet wird

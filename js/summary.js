@@ -52,7 +52,7 @@ function updateSummary() {
   let sortedUrgentTasks = urgentTasks.sort((a, b) => new Date(a.date) - new Date(b.date));
   let upcomingDeadline = sortedUrgentTasks.length > 0 ? formatDate(sortedUrgentTasks[0].date) : 'No urgent tasks';
   let done = tasks.filter(task => task.status === 'done').length;
-  let toDo = tasks.filter(task => task.status === 'toDo').length;
+  let toDo = tasks.filter(task => task.status === 'triage').length;
 
   document.getElementById('tasksInBoard').textContent = tasksInBoard;
   document.getElementById('tasksInProgress').textContent = tasksInProgress;
@@ -109,4 +109,3 @@ function hideElements(background, animatedImage) {
   background.style.display ='none';
   animatedImage.style.display ='none';
 }
-  

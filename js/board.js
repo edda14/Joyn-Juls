@@ -16,6 +16,7 @@ async function initBoard() {
  */
 function renderTasks() {
     const columns = {
+        triage: document.getElementById('triage'),
         toDo: document.getElementById('toDo'),
         progress: document.getElementById('progress'),
         feedback: document.getElementById('feedback'),
@@ -42,11 +43,11 @@ function renderTasks() {
         
         newTask.addEventListener('click', event => {
             event.stopPropagation();
-            showOverlay1(task.title, task.description, task.date, prio, assignedTo, category, subtaskHTML, id, editSubtask);
+            showOverlay1(task.title, task.description, task.date, prio, assignedTo, category, subtaskHTML, id, editSubtask, task.creator, task.aiGenerated);
         });
 
         
-        let targetColumn = columns[status] || columns.toDo;
+        let targetColumn = columns[status] || columns.triage;
         targetColumn.appendChild(newTask);
 
         
@@ -92,7 +93,7 @@ function getTaskAssignee(assignedTo) {
  * @param {string} id - The ID of the task.
  * @param {string} editSubtask - The HTML content for editing subtasks.
  */
-async function showOverlay1(taskTitle, taskDescription, taskDueDate, taskPriority, taskAssignees, taskType, subtaskHTML, id, editSubtask) {
+async function showOverlay1(taskTitle, taskDescription, taskDueDate, taskPriority, taskAssignees, taskType, subtaskHTML, id, editSubtask, taskCreator, aiGenerated) {
     const overlay = document.getElementById("overlay");
     const overlayContent = document.querySelector(".overlayContent");
 
@@ -104,7 +105,7 @@ async function showOverlay1(taskTitle, taskDescription, taskDueDate, taskPriorit
             return contact ? `
                 <div class="contactDiv">
                     <span class="contactCard" style="background-color: ${assignee.color};"> ${assignee.initial}</span>
-                    <span class="contactName">${contact.name}</span>
+                    <span class="contactName">${getContactDisplayName(contact)}</span>
                 </div>
             ` : '';
         }).join('')
@@ -121,7 +122,9 @@ async function showOverlay1(taskTitle, taskDescription, taskDueDate, taskPriorit
         taskTypeBackgroundColor,
         assigneeOverlayContent,
         subtaskHTML,
-        id
+        id,
+        taskCreator,
+        aiGenerated
     );
 
     // Insert the generated HTML into the overlay content
@@ -141,13 +144,14 @@ async function showOverlay1(taskTitle, taskDescription, taskDueDate, taskPriorit
  */
 function getSubtask(toDo) {
     let subtaskHTML = '';
+    const disabled = canCurrentUserModifyTask(toDo) ? '' : 'disabled';
 
     for (let i = 0; i < toDo.subcategory.length; i++) {
         let subtask = toDo.subcategory[i];
         let isChecked = toDo.completedSubtasks[i] === 'true' ? 'checked' : 'false';
         subtaskHTML += /*html*/ `
          <div class="checkBoxDiv">
-             <input type="checkbox" id="simpleCheckbox${i}" class="checkBox" onclick="addCompletedSubtasks(${i}, '${toDo.id}')" ${isChecked}>
+             <input type="checkbox" id="simpleCheckbox${i}" class="checkBox" onclick="addCompletedSubtasks(${i}, '${toDo.id}')" ${isChecked} ${disabled}>
              <span class="checkBoxText">${subtask}</span>
          </div>
         `;
@@ -164,6 +168,7 @@ function getSubtask(toDo) {
 async function addCompletedSubtasks(i, id) {
     await loadDataTask();
     let taskItem = tasks.find(taskItem => taskItem.id === id);
+    if (!canCurrentUserModifyTask(taskItem)) return;
     if (taskItem) { // Check if taskItem is not undefined
         if (taskItem.completedSubtasks[i] == 'false') {
             taskItem.completedSubtasks[i] = 'true';
@@ -248,11 +253,12 @@ function off() {
 /**
  * Displays the add task overlay and initializes it.
  * @async
- * @param {string} [status='toDo'] - The status to set for the task (default is 'toDo').
+ * @param {string} [status='triage'] - Initial status for newly created tasks.
  */
-async function showOverlay(status = 'toDo') {
-
+async function showOverlay(status = 'triage') {
+    choosedContacts = [];
     await addTaskInit();
+    showChoosedContacts();
     addTaskOverlay.style.display = 'block';
     document.getElementById('addTaskOverlay').dataset.status = status;
 
@@ -261,9 +267,11 @@ async function showOverlay(status = 'toDo') {
 /**
  * Hides the add task overlay with fade-out and slide-out animations.
  */
-function offAddTask() {
+function offAddTask(event, forceClose = false) {
     const overlay = document.getElementById("addTaskOverlay");
     const overlayContent = document.querySelector(".overlayContentAddTask");
+
+    if (!forceClose && event && event.target !== overlay) return;
 
     overlayContent.classList.add("slide-out-content"); // Add the slide-out animation class
     overlay.classList.add("fade-out-overlay"); // Add the fade-out animation class
@@ -313,6 +321,8 @@ async function ShowEditOverlay(id) {
 
     
     const task = tasks.find(task => task.id === id);
+
+    if (!canCurrentUserModifyTask(task)) return;
 
     if (task) {
         const { title, description, date, prio, subcategory, assignedTo } = task;
@@ -434,6 +444,7 @@ function searchTasks() {
     let taskCards = document.querySelectorAll('.card');
 
     
+    let triageContainer = document.getElementById('triage');
     let toDoContainer = document.getElementById('toDo');
     let progressContainer = document.getElementById('progress');
     let feedbackContainer = document.getElementById('feedback');
@@ -444,6 +455,7 @@ function searchTasks() {
 
     
     let matchesFound = {
+        triage: false,
         toDo: false,
         progress: false,
         feedback: false,
@@ -455,13 +467,14 @@ function searchTasks() {
         let taskDescription = card.querySelector('.cardContext').textContent.toLowerCase();
 
         
-        let parentSection = card.closest('#toDo, #progress, #feedback, #done');
+        let parentSection = card.closest('#triage, #toDo, #progress, #feedback, #done');
 
         if (taskTitle.includes(searchInput) || taskDescription.includes(searchInput)) {
             card.style.display = 'block'; 
 
             
             if (parentSection) {
+                if (parentSection.id === 'triage') matchesFound.triage = true;
                 if (parentSection.id === 'toDo') matchesFound.toDo = true;
                 if (parentSection.id === 'progress') matchesFound.progress = true;
                 if (parentSection.id === 'feedback') matchesFound.feedback = true;
@@ -473,6 +486,7 @@ function searchTasks() {
     });
 
     
+    if (!matchesFound.triage) addNoResultsMessage(triageContainer);
     if (!matchesFound.toDo) addNoResultsMessage(toDoContainer);
     if (!matchesFound.progress) addNoResultsMessage(progressContainer);
     if (!matchesFound.feedback) addNoResultsMessage(feedbackContainer);

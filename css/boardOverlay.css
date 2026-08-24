@@ -23,6 +23,7 @@
 
 .overlayContent {
     margin: auto;
+    box-sizing: border-box;
     width: 525px;
     max-height: 75vh;
     height: 100%;
@@ -33,11 +34,22 @@
     cursor: auto;
     box-shadow: 0px 0px 4px 0px #00000029;
     overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     position: relative;
     margin-top: 100px;
     animation: slideIn 0.5s ease-out;
     z-index: 100000;
     
+}
+
+/* The task remains scrollable, but the scrollbar cannot protrude past the
+   rounded overlay edge in Chromium/Safari. */
+.overlayContent::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
 }
 
 @keyframes slideIn {
@@ -70,6 +82,28 @@
     justify-content: space-between;
     display: flex;
     padding-bottom: 24px;
+}
+
+.overlayMeta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.aiGeneratedHint {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #9747ff;
+    font-size: 16px;
+    font-weight: 400;
+}
+
+.aiGeneratedHint svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
 }
 
 .overlayUser {
@@ -161,6 +195,98 @@
     text-align: left;
     margin-top: 24px;
     margin-bottom: 24px;
+}
+
+.creatorSection {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 24px;
+    color: #2a3647;
+}
+
+.creatorBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 7px;
+    border-radius: 6px;
+    color: #0038a8;
+    font-size: 16px;
+    white-space: nowrap;
+}
+
+.creatorBadge svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.creatorBadgeMember {
+    background: #8dffc1;
+}
+
+.creatorBadgeExternal {
+    background: #efff68;
+}
+
+.creatorName {
+    color: #000;
+    font-size: 18px;
+    overflow-wrap: anywhere;
+}
+
+.creatorAction {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    padding: 5px 8px;
+    border-radius: 6px;
+    color: #42526e;
+    font-size: 17px;
+    text-decoration: none;
+    transition: background-color 120ms ease, color 120ms ease;
+}
+
+.creatorActionIcon {
+    color: #0786b5;
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.creatorAction:hover {
+    background: #2a3647;
+    color: #fff;
+}
+
+.creatorAction:active {
+    background: #2a3647;
+    color: #fff;
+}
+
+.creatorAction:active .creatorActionIcon {
+    color: #fff;
+}
+
+@media (max-width: 600px) {
+    .creatorSection {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .creatorAction {
+        margin-left: 0;
+    }
 }
 
 .dueDate {
@@ -350,6 +476,15 @@ cursor: pointer;
     box-sizing: border-box;
     padding: 20px;
     overflow: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.edit-task-overlay::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
 }
 
 .board-task-edit-btn{
@@ -387,4 +522,3 @@ cursor: pointer;
     justify-content: flex-end;
     margin-top: 250px;
 }
-

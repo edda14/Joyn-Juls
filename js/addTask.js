@@ -11,11 +11,11 @@ async function addTaskInit() {
     await includeHTML();
     await loadDataContacts();
     await renderAssignedToContacts();
-    setupDropdownToggle();
     showAvailableContacts();
     showCategoryList();
     showInitials();
     setupContactSearchPlaceholder();
+    setupSubcategoryControls();
     setBackgroundColorPrio('medium');
 }
 
@@ -119,8 +119,9 @@ function removeContactFromTask(id) {
 function updateCheckboxState(contactId) {
     const checkboxes = document.querySelectorAll(`input[data-contact-id="${contactId}"]`);
     checkboxes.forEach(checkbox => {
-        // Ensure the checkbox reflects the selection state
-        checkbox.checked = choosedContacts.some(contact => contact.id === contactId);
+        const isSelected = choosedContacts.some(contact => contact.id === contactId);
+        checkbox.checked = isSelected;
+        checkbox.closest('.at-contact-layout')?.classList.toggle('is-selected', isSelected);
     });
 }
 
@@ -151,24 +152,32 @@ function showAvailableContacts() {
     customSelects.forEach(select => {
         const selectSelected = select.querySelector('.select-selected');
         const selectItems = select.querySelector('.select-items');
-        const options = selectItems.querySelectorAll('.at-contact-layout');
-        
         // Hide the contact list by default
         selectItems.style.display = 'none';
+        selectItems.classList.add('select-hide');
+
+        if (select.dataset.contactDropdownBound === 'true') return;
+        select.dataset.contactDropdownBound = 'true';
 
         // Handle showing contact list and selection
         showContactList(selectSelected, selectItems, customSelects);
-        chooseContactFromList(options);
 
-        // Close the list if clicked outside the dropdown
-        window.addEventListener('click', function (event) {
+        // Capture the click before other form controls can stop propagation.
+        document.addEventListener('click', function (event) {
             if (!select.contains(event.target)) {
                 selectItems.style.display = 'none';
-                document.getElementById('open-contact-list').classList.remove('d-none');
-                document.getElementById('close-contact-list').classList.add('d-none');
+                selectItems.classList.add('select-hide');
+                document.getElementById('open-contact-list')?.classList.remove('d-none');
+                document.getElementById('close-contact-list')?.classList.add('d-none');
             }
-        });
+        }, true);
     });
+}
+
+function handleContactSelection(event, contactId) {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleCheckbox(contactId);
 }
 
 function toggleCheckbox(contactId) {
@@ -185,23 +194,13 @@ function toggleCheckbox(contactId) {
     // Find the closest parent with the class 'at-contact-layout'
     const contactLayout = checkbox.closest('.at-contact-layout');
 
-    // Add or remove the contact from the selected list based on checkbox state
+    // Keep the list open so several contacts can be selected in one go.
     if (checkbox.checked) {
         addContactToTask(selectedContact.initials, contactId, selectedContact.profileColor);
-
-        // Change the background color if checked
-        if (contactLayout) {
-            contactLayout.style.backgroundColor = '#2a3647e0';
-            contactLayout.style.color = 'white'
-        }
+        contactLayout?.classList.add('is-selected');
     } else {
         removeContactFromTask(contactId);
-
-        // Remove the background color if unchecked
-        if (contactLayout) {
-            contactLayout.style.backgroundColor = '';
-            contactLayout.style.color = 'black'
-        }
+        contactLayout?.classList.remove('is-selected');
     }
 }
 
@@ -210,19 +209,21 @@ function toggleCheckbox(contactId) {
 function showContactList(selectSelected, selectItems, customSelects) {
     selectSelected.addEventListener('click', function (event) {
         event.stopPropagation(); // Prevents closing the dropdown on this click
+        const shouldOpen = selectItems.classList.contains('select-hide');
+
         customSelects.forEach(function (s) {
-            s.querySelector('.select-items').style.display = 'none'; // Hide other dropdowns
+            const items = s.querySelector('.select-items');
+            items.style.display = 'none';
+            items.classList.add('select-hide');
         });
 
-        // Toggle the current dropdown
-        if (selectItems.style.display === 'block') {
-            selectItems.style.display = 'none';
-        } else {
+        if (shouldOpen) {
+            selectItems.classList.remove('select-hide');
             selectItems.style.display = 'block';
         }
 
         // Toggle the icons accordingly
-        if (selectItems.style.display === 'block') {
+        if (shouldOpen) {
             document.getElementById('open-contact-list').classList.add('d-none');
             document.getElementById('close-contact-list').classList.remove('d-none');
         } else {
@@ -231,30 +232,8 @@ function showContactList(selectSelected, selectItems, customSelects) {
         }
     });
 
-    // Close the dropdown when clicking outside of it
-    document.addEventListener('click', function (event) {
-        if (!event.target.closest('.custom-select') && !event.target.closest('.select-items')) {
-            selectItems.style.display = 'none';
-            document.getElementById('open-contact-list').classList.remove('d-none');
-            document.getElementById('close-contact-list').classList.add('d-none');
-        }
-    });
 }
 
-
-function chooseContactFromList(options) {
-    options.forEach(option => {
-        option.addEventListener('click', function (event) {
-            event.stopPropagation(); // Keep the dropdown open when selecting
-            const checkbox = option.querySelector('input[type="checkbox"]');
-            const contactId = option.querySelector('input').dataset.contactId;
-
-            // Toggle the checkbox and update the selected contacts
-            checkbox.checked = !checkbox.checked;
-            toggleCheckbox(contactId);
-        });
-    });
-}
 
 function setBackgroundColorPrio(prio) {
     let prioStatus = document.getElementById(prio);
@@ -301,6 +280,8 @@ function showCategoryList() {
         let selectSelected = select.querySelector('.select-category-selected');
         let selectItems = select.querySelector('.select-category-items');
         let options = selectItems.querySelectorAll('.at-contact-layout');
+        if (select.dataset.categoryDropdownBound === 'true') return;
+        select.dataset.categoryDropdownBound = 'true';
         showCategoryDropdown(selectSelected, selectItems);
         chooseCategoryFromList(options, selectSelected, selectItems);
         window.addEventListener('click', function (e) {
@@ -348,7 +329,8 @@ function clearCategoryDropdown() {
     customSelects.forEach(function (select) {
         let selectSelected = select.querySelector('.select-category-selected');
         let selectItems = select.querySelector('.select-category-items');
-        selectSelected.textContent = 'Select task category';
+        const selectedLabel = selectSelected.querySelector('div');
+        if (selectedLabel) selectedLabel.textContent = 'Select task category';
         selectItems.style.display = 'none';
         categoryChoosedIndex = 'false';
         categoryChoosed = '';
@@ -364,10 +346,14 @@ function clearCategoryDropdown() {
 function chooseCategoryFromList(options, selectSelected, selectItems) {
     options.forEach(function (option) {
         option.addEventListener('click', function () {
-            selectSelected.textContent = option.querySelector('.at-contact-name').textContent;
+            const selectedCategory = option.querySelector('.at-contact-name').textContent;
+            const selectedLabel = selectSelected.querySelector('div');
+            if (selectedLabel) selectedLabel.textContent = selectedCategory;
             selectItems.style.display = 'none';
             categoryChoosedIndex = 'true';
-            categoryChoosed = selectSelected.textContent;
+            categoryChoosed = selectedCategory;
+            document.getElementById('open-category-list')?.classList.remove('d-none');
+            document.getElementById('close-category-list')?.classList.add('d-none');
             checkIfCategoryEmpty();
         });
     });
@@ -433,13 +419,31 @@ function activateSubcategory() {
         document.getElementById('at-subcategory-confirm').classList.remove('d-none');
         document.getElementById('at-subcategory-open').classList.add('d-none');
     }
-    window.addEventListener('click', function (event) {
-        if (!inputField.contains(event.target)) {
-            document.getElementById('at-subcategory-clear').classList.add('d-none');
-            document.getElementById('at-subcategory-border').classList.add('d-none');
-            document.getElementById('at-subcategory-confirm').classList.add('d-none');
-            document.getElementById('at-subcategory-open').classList.remove('d-none');
-        }
+    inputField.focus();
+}
+
+function deactivateSubcategory() {
+    document.getElementById('at-subcategory-clear')?.classList.add('d-none');
+    document.getElementById('at-subcategory-border')?.classList.add('d-none');
+    document.getElementById('at-subcategory-confirm')?.classList.add('d-none');
+    document.getElementById('at-subcategory-open')?.classList.remove('d-none');
+}
+
+function setupSubcategoryControls() {
+    const input = document.getElementById('add-subcategory');
+    const container = input?.closest('.at-input-container');
+    const openButton = document.getElementById('at-subcategory-open');
+    if (!input || !container || container.dataset.subcategoryBound === 'true') return;
+
+    container.dataset.subcategoryBound = 'true';
+    openButton?.addEventListener('click', event => {
+        event.stopPropagation();
+        activateSubcategory();
+    });
+    input.addEventListener('keydown', event => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        renderSubcategory();
     });
 }
 
@@ -476,6 +480,7 @@ function renderSubcategory() {
         `
         }
         subcategory.value = '';
+        deactivateSubcategory();
     }
     else {
         for (let i = 0; i < subcategoriesChoosed.length; i++) {
@@ -565,8 +570,3 @@ function setupContactSearchPlaceholder() {
         }
     });
 }
-
-
-
-
-

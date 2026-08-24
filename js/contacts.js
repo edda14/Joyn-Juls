@@ -1,8 +1,48 @@
 
 let beautifulColors = [
-    'rgb(255, 46, 46)', 'rgb(255, 161, 46)', 'rgb(255, 238, 46)', 'rgb(51, 224, 42)', 'rgb(42, 203, 224)',
-    'rgb(42, 115, 224)', 'rgb(139, 42, 224)', 'rgb(218, 42, 224)', 'rgb(232, 58, 133)', 'rgb(232, 58, 58)',
+    '#B9A7EA', // pastel lilac
+    '#F3A6C8', // pastel pink
+    '#9BCBF4', // baby blue
+    '#F4DB72', // butter lemon
+    '#A8C8A0', // sage green
+    '#F4B69D', // soft peach
+    '#91D4CC', // pastel turquoise
+    '#C7A6E8', // soft violet
+    '#F3A7A7', // pastel coral
+    '#AAB8EB', // periwinkle
+    '#A8DDB5', // pastel mint
+    '#E7B58A', // warm apricot
 ];
+
+/**
+ * Returns a random pastel color, preferring colors not yet used by a contact.
+ * This keeps the contact list varied before colors begin to repeat.
+ * @returns {string} CSS color value
+ */
+function getRandomProfileColor() {
+    const usedColors = new Set(contacts.map(contact => contact.profileColor));
+    const unusedColors = beautifulColors.filter(color => !usedColors.has(color));
+    const colorPool = unusedColors.length > 0 ? unusedColors : beautifulColors;
+    return colorPool[Math.floor(Math.random() * colorPool.length)];
+}
+
+function stripYouSuffix(name = '') {
+    return name.replace(/\s*\(You\)\s*$/, '').trim();
+}
+
+function isCurrentUserContact(contact) {
+    const signedInUser = JSON.parse(sessionStorage.getItem('currentUser'));
+    return Boolean(
+        signedInUser?.email &&
+        contact?.mail &&
+        signedInUser.email.toLowerCase() === contact.mail.toLowerCase()
+    );
+}
+
+function getContactDisplayName(contact) {
+    const name = stripYouSuffix(contact?.name || '');
+    return isCurrentUserContact(contact) ? `${name} (You)` : name;
+}
 
 let alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 
@@ -11,6 +51,7 @@ async function contactInit() {
     showInitials();
     await loadDataContacts();
     renderContacts();
+    openContactFromUrl();
 }
 
 function renderContacts() {
@@ -31,7 +72,8 @@ function createContactList(newContactIndex = null) {
             const initials = contact.initials;
             const firstLetter = initials.charAt(0).toUpperCase();
 
-            if (firstLetter === letter && !seenContacts.has(contact.name)) {
+            const displayName = getContactDisplayName(contact);
+            if (firstLetter === letter && !seenContacts.has(displayName)) {
                 if (!letterAdded) {
                     const letterHeading = document.createElement('div');
                     letterHeading.textContent = firstLetter;
@@ -42,6 +84,7 @@ function createContactList(newContactIndex = null) {
 
                 const contactItem = document.createElement('div');
                 contactItem.classList.add('contact');
+                contactItem.dataset.contactId = contact.id;
                 if (i === newContactIndex) {
                     contactItem.classList.add('active'); // Markiere den neuen Kontakt als aktiv
                 }
@@ -55,7 +98,7 @@ function createContactList(newContactIndex = null) {
                 const contactDetails = document.createElement('div');
                 contactDetails.classList.add('oneContact');
                 contactDetails.innerHTML = `
-                      <h2>${contact.name}</h2>
+                      <h2>${displayName}</h2>
                       <p class="blueColor">${contact.mail}</p>
                   `;
                 contactItem.appendChild(contactDetails);
@@ -74,10 +117,26 @@ function createContactList(newContactIndex = null) {
                     contactClickHandler(i);
                 };
 
-                seenContacts.add(contact.name); // Kontakt als gesehen markieren
+                seenContacts.add(displayName); // Kontakt als gesehen markieren
             }
         }
     }
+}
+
+function openContactFromUrl() {
+    const email = new URLSearchParams(window.location.search).get('email');
+    if (!email) return;
+
+    const contactIndex = contacts.findIndex(contact =>
+        contact.mail && contact.mail.toLowerCase() === email.toLowerCase()
+    );
+    if (contactIndex < 0) return;
+
+    document.querySelectorAll('.contact').forEach(contact => contact.classList.remove('active'));
+    const selectedContact = document.querySelector(`[data-contact-id="${contacts[contactIndex].id}"]`);
+    selectedContact?.classList.add('active');
+    selectedContact?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    contactClickHandler(contactIndex);
 }
 
 // Hilfsfunktion zum Extrahieren des ersten Buchstabens des Vornamens und Nachnamens
@@ -98,8 +157,7 @@ async function getNewContact() {
         document.getElementById('addNewContactAlert').innerHTML = '';
         document.getElementById('addNewContactAlert').innerHTML = '<p>the fields must be filled</p>';
     } else {
-        const colorIndx = Math.floor(Math.random() * beautifulColors.length); // Zufälliger Index für Farbe
-        const color = beautifulColors[colorIndx];
+        const color = getRandomProfileColor();
         const initialien = extractInitials(name.value);
         const newContact = {
             mail: email.value,
@@ -180,8 +238,8 @@ function slideSuccessfullyContact() {
 async function showEditContact(i) {
     let contact = contacts[i];
     let name = contact.name;
-    isItYou = name.includes('(You)');
-    let displayName = isItYou ? name.substr(0, name.length - 12) : name;
+    isItYou = isCurrentUserContact(contact);
+    let displayName = stripYouSuffix(name);
 
     const color = contact['profileColor'];
 
@@ -189,8 +247,7 @@ async function showEditContact(i) {
     document.getElementById('blurBackgroundEdit').classList.remove('d-none');
     editContact.style.display = "flex";
     setTimeout(() => {
-        editContact.style.bottom = "0";
-        editContact.style.right = "0";
+        editContact.style.transform = "translateX(0)";
     }, 10);
     document.getElementById('editContactSecondSection').innerHTML = editContactHTML(i);
     document.getElementById('editName').value = displayName;
@@ -213,7 +270,7 @@ async function editContactToArray(i) {
     let phone = document.getElementById('editPhone');
     const initial = extractInitials(name.value);
 
-    let myName = isItYou ? name.value + ' (You)' : name.value;
+    let myName = stripYouSuffix(name.value);
 
     const newContact = {
         "name": myName,
@@ -236,30 +293,24 @@ function showAddContact() {
     document.getElementById('blurBackground').classList.remove('d-none');
     addNewContact.style.display = "flex";
     setTimeout(() => {
-        addNewContact.style.right = "0";
-        addNewContact.style.bottom = "0";
+        addNewContact.style.transform = "translateX(0)";
     }, 10);
 }
 
 function cancelAddContact() {
+    addNewContact.style.transform = "translateX(120vw)";
     setTimeout(() => {
-        addNewContact.style.right = "-6000px";
-        addNewContact.style.bottom = "-6000px";
         addNewContact.style.display = "none";
         document.getElementById('blurBackground').classList.add('d-none');
-    }, 10);
+    }, 500);
     closeEditDiv();
 }
 
 function cancelEditContact() {
+    editContact.style.transform = "translateX(120vw)";
     setTimeout(() => {
-        editContact.style.right = "-6000px";
-        editContact.style.bottom = "-6000px";
         editContact.style.display = "none";
         document.getElementById('blurBackgroundEdit').classList.add('d-none');
-    }, 10);
+    }, 500);
     closeEditDiv();
 }
-
-
-

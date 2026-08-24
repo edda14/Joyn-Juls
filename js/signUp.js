@@ -1,7 +1,7 @@
 let isChecked = false;
 
 async function initSignUp() {
-  await loadUserData();
+  // Firebase Authentication is initialized by firebase.js.
 }
 
 function getSignUpPopupContainer() {
@@ -36,14 +36,17 @@ function getSignUpPopup() {
     return false;
   }
 
-  let newUser = createNewUser(name, email, password);
-
   try {
-    await postUserData('./users', newUser);
+    const firebaseUser = await window.firebaseAuth.registerWithEmail(
+      name.value.trim(),
+      email.value.trim().toLowerCase(),
+      password.value
+    );
+    await saveUserProfile(firebaseUser.uid, name.value.trim(), email.value.trim().toLowerCase());
     showSignUpPopup();
     setTimeout(hideSignUpPopupAndRedirect, 3000);
   } catch (error) {
-    console.error("Fehler beim Senden der Daten:", error);
+    showRegistrationError(error, email, password, confirmPassword);
   }
 
   return false;
@@ -59,7 +62,7 @@ function resetInputBorders(name, email, password, confirmPassword) {
 }
 
 function isValidInput(name, email, password, confirmPassword) {
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d\s]).{8,}$/;
   return (
     name.value !== "" &&
     email.value !== "" &&
@@ -83,12 +86,23 @@ function handleInvalidInput(name, email, password, confirmPassword) {
   }
 }
 
-function createNewUser(name, email, password) {
-  return {
-    name: name.value,
-    email: email.value,
-    password: password.value,
+async function saveUserProfile(uid, name, email) {
+  await putUserData(`/users/${uid}`, { name, email });
+}
+
+function showRegistrationError(error, email, password, confirmPassword) {
+  const alert = document.querySelector(".passwordAlert");
+  const messages = {
+    "auth/email-already-in-use": "This email address is already registered.",
+    "auth/invalid-email": "Please enter a valid email address.",
+    "auth/weak-password": "Please choose a stronger password.",
   };
+  alert.textContent = messages[error.code] || "Sign up failed. Please try again.";
+  alert.classList.remove("dNone");
+  email.style.borderColor = "#FF8190";
+  password.style.borderColor = "#FF8190";
+  confirmPassword.style.borderColor = "#FF8190";
+  console.error("Firebase sign-up failed:", error.code);
 }
 
 function showSignUpPopup() {

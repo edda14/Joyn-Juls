@@ -1,4 +1,5 @@
 let currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+let includeHTMLPromise = null;
 
 async function initTemplate() {
     await includeHTML();
@@ -8,21 +9,34 @@ async function initTemplate() {
 
 
 async function includeHTML() {
-    let includeElements = document.querySelectorAll('[w3-include-html]');
+    if (includeHTMLPromise) return includeHTMLPromise;
+
+    includeHTMLPromise = loadIncludes();
+    try {
+        await includeHTMLPromise;
+    } finally {
+        includeHTMLPromise = null;
+    }
+}
+
+async function loadIncludes() {
+    const includeElements = Array.from(document.querySelectorAll('[w3-include-html]'));
     let basePath = window.location.pathname.includes('Joyn-Juls') ? '/Joyn-Juls/' : '/';
 
-    for (let i = 0; i < includeElements.length; i++) {
-        let element = includeElements[i];
-        let file = element.getAttribute("w3-include-html");
+    await Promise.all(includeElements.map(async element => {
+        const file = element.getAttribute("w3-include-html");
 
-        let resp = await fetch(basePath + file);
-
-        if (resp.ok) {
+        try {
+            const resp = await fetch(basePath + file);
+            if (!resp.ok) throw new Error(`Could not load ${file}`);
             element.innerHTML = await resp.text();
-        } else {
+            element.removeAttribute("w3-include-html");
+        } catch (error) {
             element.innerHTML = 'Page not found';
+            console.error(error);
         }
-    }
+    }));
+
     currentPage();
 }
 
@@ -91,19 +105,15 @@ function clearStorage() {
 }
 
 async function logout() {
-  for (let i = 0; i < contacts.length; i++){
-      let contact = contacts[i];
-      if (contact.name.endsWith("(You)")) {
-      await deleteDataContact(`/contacts/${contact.id}`);
-   } 
-  }
+   if (window.firebaseAuth?.signOut) await window.firebaseAuth.signOut();
    clearStorage();
    window.location.href = "./index.html";
 }
 
 function getTaskTemplate(toDo, i, taskTypeBackgroundColor, taskType, taskAssignee, taskPriorityIcon, completedSubtasks, editSubtask, id, subtaskHTML) {
+  const isDraggable = canCurrentUserModifyTask(toDo);
   return `
-      <div class="card" draggable="true" ondragstart="startDragging('${id}')" data-id="${id}">
+      <div class="card" draggable="${isDraggable}" ondragstart="startDragging('${id}')" data-id="${id}">
           <div class="cardContent">
               <span class="labelUser" style="background-color: ${taskTypeBackgroundColor};">${taskType}</span>
               <div class="contextContent">
@@ -153,11 +163,15 @@ function getEditSubtaskHTML(editSubtask) {
 }
 
 function checkIfEmpty() {
+  let triage = document.getElementById('triage');
   let toDo = document.getElementById('toDo');
   let progress = document.getElementById('progress');
   let feedback = document.getElementById('feedback');
   let done = document.getElementById('done');
 
+  if (triage && triage.innerHTML.trim() === "") {
+      triage.innerHTML = `<div class="noTasks"><span class="noTaskText">No tasks in Triage</span></div>`;
+  }
   if (progress.innerHTML.trim() === "") {
       progress.innerHTML = `<div class="noTasks"><span class="noTaskText">Nothing in progress</span></div>`;
   }
@@ -174,7 +188,7 @@ function checkIfEmpty() {
 
 function generateAssignedContactsHTML(initials, contactName, id, color) {
   return `
-      <div class="at-contact-layout" onclick="toggleCheckbox('${id}')">
+      <div class="at-contact-layout" onclick="handleContactSelection(event, '${id}')">
           <div class="at-contact-name-container">
               <div class="at-contact-shortcut-layout" style="background-color: ${color};">
                   <div class="at-contact-shortcut">${initials}</div>
@@ -194,7 +208,7 @@ function getContactViewTemplate(contact, i) {
           <div class="profilePictureContact" id="pictureViewContact" style="background-color: ${contact.profileColor}">${contact.initials}</div>
           <div class="nameEditBox">
               <div class="nameBox">
-                  <h2>${contact.name}</h2>
+                  <h2>${getContactDisplayName(contact)}</h2>
               </div>
               <div class="editDivContact">
                   <div class="editBox" id="editDiv" onclick="showEditContact(${i})"><img src="assets/img/edit_contact.png" alt="edit">
@@ -231,7 +245,7 @@ function getResponsiveContactTemplate(contact, i) {
               <div class="profilePictureContact" id="pictureViewContact" style="background-color: ${contact.profileColor}">${contact.initials}</div>
               <div class="nameEditBox">
                   <div class="nameBox">
-                      <h2>${contact.name}</h2>
+                      <h2>${getContactDisplayName(contact)}</h2>
                   </div>
                   <div class="editDivContact">
                       <div class="editBox" id="editDiv" onclick="showEditContact(${i})"><img src="assets/img/edit_contact.png" alt="edit">
@@ -298,7 +312,38 @@ function getEditContactTemplate(contact, i) {
   `;
 }
 
-function getOverlayTemplate(taskTitle, taskDescription, taskDueDate, taskPriority, taskPriorityIcon, taskType, taskTypeBackgroundColor, assigneeOverlayContent, subtaskHTML, id) {
+function getOverlayTemplate(taskTitle, taskDescription, taskDueDate, taskPriority, taskPriorityIcon, taskType, taskTypeBackgroundColor, assigneeOverlayContent, subtaskHTML, id, taskCreator, aiGenerated) {
+  const creatorName = taskCreator?.name || taskCreator?.email || 'Unknown';
+  const isExternal = taskCreator?.type === 'external';
+  const isGuest = taskCreator?.role === 'guest';
+  const internalLabel = isGuest ? 'Guest' : 'Member';
+  const creatorBadge = isExternal
+    ? `<span class="creatorBadge creatorBadgeExternal"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>Extern</span>`
+    : `<span class="creatorBadge creatorBadgeMember"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 19c0-4 2.5-6 6-6s6 2 6 6M15 14c3-.5 5 1.5 5 4.5"/></svg>${internalLabel}</span>`;
+  const creatorAction = isExternal
+    ? `<a class="creatorAction" href="mailto:${taskCreator?.email || ''}" aria-label="Send email to ${creatorName}">
+        <svg class="creatorActionIcon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="15" height="11" rx="1"/><path d="m4 7 6.5 5L17 7M19 14v5m-2-2h4"/></svg>E-mail
+      </a>`
+    : isGuest
+    ? ''
+    : `<a class="creatorAction" href="./contacts.html?email=${encodeURIComponent(taskCreator?.email || '')}" aria-label="Open profile of ${creatorName}">
+        <svg class="creatorActionIcon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5 20c0-4.5 2.5-7 7-7s7 2.5 7 7z"/></svg>Profil
+       </a>`;
+  const aiBadge = aiGenerated
+    ? `<span class="aiGeneratedHint"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 2 1.4 4.6L18 8l-4.6 1.4L12 14l-1.4-4.6L6 8l4.6-1.4zM19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8z"/></svg>AI-generated ticket</span>`
+    : '';
+  const taskForPermissionCheck = { creator: taskCreator };
+  const taskActions = canCurrentUserModifyTask(taskForPermissionCheck)
+    ? `<section>
+          <div id="editDiv" class="editDiv">
+              <div class="deleteDiv" onclick="deleteTask('${id}'); off();"><img class="deletePng" src="./assets/img/delete (1).png" alt=""><span>Delete</span></div>
+              <div class="vector"></div>
+              <div class="deleteDiv" onclick="ShowEditOverlay('${id}')">
+                  <img class="deletePng" src="./assets/img/edit (1).png" alt=""><span>Edit</span>
+              </div>
+          </div>
+       </section>`
+    : '';
   return `
       <section id="edit-task-overlay${id}" class="edit-task-overlay d-none">
           <section class="edit-close-btn-container">
@@ -312,13 +357,22 @@ function getOverlayTemplate(taskTitle, taskDescription, taskDueDate, taskPriorit
           </div>
       </section>
       <section class="overlayUserTitle">
-          <span style="background-color: ${taskTypeBackgroundColor};" class="overlayUser">${taskType}</span>
+          <div class="overlayMeta">
+              <span style="background-color: ${taskTypeBackgroundColor};" class="overlayUser">${taskType}</span>
+              ${aiBadge}
+          </div>
           <img class="closeButton" onclick="off()" src="./assets/img/Close.png" alt="">
       </section>
       <section>
           <span class="overlayTitle">${taskTitle}</span>
       </section>
       <section class="overlayContext"><span>${taskDescription}</span></section>
+      <section class="creatorSection">
+          <span class="dueDate">Creator:</span>
+          ${creatorBadge}
+          <span class="creatorName">${creatorName}</span>
+          ${creatorAction}
+      </section>
       <section class="dateDiv">
           <span class="dueDate">Due date:</span>
           <span class="date">${taskDueDate}</span>
@@ -335,14 +389,6 @@ function getOverlayTemplate(taskTitle, taskDescription, taskDueDate, taskPriorit
       </section>
       <div class="subtasksOverlay"><span>Subtasks</span></div>
       ${subtaskHTML}
-      <section>
-          <div id="editDiv" class="editDiv">
-              <div class="deleteDiv" onclick="deleteTask('${id}'); off();"><img class="deletePng" src="./assets/img/delete (1).png" alt=""><span>Delete</span></div>
-              <div class="vector"></div>
-              <div class="deleteDiv" onclick="ShowEditOverlay('${id}', '${taskTitle}', '${taskDescription}', '${taskDueDate}', '${taskPriority}')">
-                  <img class="deletePng" src="./assets/img/edit (1).png" alt=""><span>Edit</span>
-              </div>
-          </div>
-      </section>
+      ${taskActions}
   `;
 }

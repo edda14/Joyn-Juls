@@ -15,7 +15,39 @@
   </head>
   <body onload="initTemplate()">
     <header w3-include-html="./template/header.html"></header>
-    <aside w3-include-html="./template/nav.html"></aside>
+    <aside>
+      <div class="navbar">
+        <img class="joinIcon" src="./assets/img/joinWhite.png" alt="Join Icon" />
+        <div class="navbarContent">
+          <div class="menu">
+            <a id="summaryMenu" href="./summary.html" class="summery">
+              <img src="./assets/img/summeryIcon.png" alt="Summary" />
+              <p>Summary</p>
+            </a>
+            <a id="boardMenuResposive" href="./board.html" class="boardResposive">
+              <img src="./assets/img/boardIcon.png" alt="Board" />
+              <p>Board</p>
+            </a>
+            <a id="addTaskMenu" href="./addTask.html" class="addTask">
+              <img src="./assets/img/addTask.png" alt="Add Task" />
+              <p>Add Task</p>
+            </a>
+            <a id="boardMenu" href="./board.html" class="board">
+              <img src="./assets/img/boardIcon.png" alt="Board" />
+              <p>Board</p>
+            </a>
+            <a id="contactsMenu" href="./contacts.html" class="conntacts">
+              <img src="./assets/img/contacktsIcon.png" alt="Contacts" />
+              <p>Contacts</p>
+            </a>
+          </div>
+          <div class="policy">
+            <a id="privacyPolicyMenu" href="./privacyPolicy.html">Privacy Policy</a>
+            <a id="legalNoticeMenu" class="currentPage" href="./legalNotice.html">Legal notice</a>
+          </div>
+        </div>
+      </div>
+    </aside>
 
     <div class="content">
       <div class="legalNoticeHeader">
@@ -110,6 +142,9 @@
       </p>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth-compat.js"></script>
+    <script src="./js/firebase.js"></script>
     <script src="./js/template.js"></script>
     <script src="./js/storage.js"></script>
   </body>

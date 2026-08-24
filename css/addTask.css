@@ -366,53 +366,103 @@ body {
     background-color: white;
     border: 1px solid #D1D1D1;
     display: none;
-    max-height: 204px;
-    overflow-y: scroll;
+    box-sizing: border-box;
+    width: 100%;
+    max-height: 220px;
+    padding: 6px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #A8A8A8 transparent;
 }
 
-.at-contact-layout {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0 12px 16px;
-    cursor: pointer;
+.select-items::-webkit-scrollbar {
+    width: 7px;
+    height: 0;
+}
+
+.select-items::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.select-items::-webkit-scrollbar-thumb {
+    background: #A8A8A8;
     border-radius: 10px;
 }
 
+.at-contact-layout {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: 54px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin: 2px 0;
+    padding: 8px 14px;
+    cursor: pointer;
+    border-radius: 10px;
+    color: #2A3647;
+    background-color: white;
+}
+
 .at-contact-layout:hover {
-    background-color: #2a3647e0;
+    background-color: #F1F3F5;
+}
+
+.at-contact-layout.is-selected,
+.at-contact-layout.is-selected:hover {
+    background-color: #2A3647;
     color: white;
 }
 
 .at-contact-shortcut-layout {
-    width: 30px;
-    height: 30px;
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
     background-color: green;
-    color: white;
+    color: #25344A;
     border-radius: 100px;
-    margin-right: 25px;
+    margin-right: 0;
+    border: 2px solid white;
 }
 
 .at-contact-name-container {
+    flex: 1;
+    min-width: 0;
     display: flex;
     justify-content: flex-start;
     align-items: center;
+    gap: 12px;
+}
+
+.at-contact-name {
+    min-width: 0;
+    overflow: hidden;
+    color: inherit;
+    font-size: 16px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .at-contact-shortcut {
-    font-size: 10px;
+    font-size: 11px;
+    font-weight: 500;
 }
 
 .at-label-checkbox {
-    display: inline-block;
+    flex: 0 0 24px;
+    display: block;
     position: relative;
     cursor: pointer;
     font-size: 20px;
     user-select: none;
-    width: 50px;
+    width: 24px;
+    height: 24px;
 }
 
 .at-label-checkbox input {
@@ -424,13 +474,16 @@ body {
 
 .at-checkmark {
     position: absolute;
-    top: 0;
-    left: 0;
-    height: 15px;
-    width: 15px;
-    border: 2px solid rgba(0, 0, 0, 0.5);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
+    top: 2px;
+    left: 2px;
+    height: 16px;
+    width: 16px;
+    border: 2px solid #2A3647;
+    border-radius: 4px;
+}
+
+.at-contact-layout.is-selected .at-checkmark {
+    border-color: white;
 }
 
 .at-label-checkbox input:checked+.at-checkmark::after {
@@ -441,9 +494,13 @@ body {
     top: 0;
     width: 5px;
     height: 10px;
-    border: solid rgba(0, 0, 0, 0.5);
+    border: solid currentColor;
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
+}
+
+.at-contact-layout.is-selected .at-label-checkbox input:checked+.at-checkmark::after {
+    color: white;
 }
 
 #at-selected-contacts {
@@ -459,8 +516,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    border: 1px solid white;
+    color: #25344A;
+    border: 2px solid white;
     border-radius: 100px;
     margin-right: 8px;
     margin-top: 8px;

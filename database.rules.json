@@ -1,0 +1,30 @@
+{
+  "rules": {
+    ".read": "auth != null",
+    "task": {
+      "$taskId": {
+        ".write": "auth != null",
+        "status": {
+          ".validate": "newData.val() === 'triage' || newData.val() === 'toDo' || newData.val() === 'progress' || newData.val() === 'feedback' || newData.val() === 'done'"
+        },
+        "prio": {
+          ".validate": "newData.val() === 'urgent' || newData.val() === 'medium' || newData.val() === 'low'"
+        },
+        "source": {
+          ".validate": "newData.val() === 'manual' || newData.val() === 'email'"
+        },
+        "aiGenerated": {
+          ".validate": "newData.isBoolean()"
+        }
+      }
+    },
+    "contacts": {
+      ".write": "auth != null"
+    },
+    "users": {
+      "$uid": {
+        ".write": "auth != null && auth.token.firebase.sign_in_provider !== 'anonymous' && auth.uid === $uid"
+      }
+    }
+  }
+}

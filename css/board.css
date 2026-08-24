@@ -333,7 +333,7 @@ content: url('../assets/img/Property\ 1=Variant2.png');
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: #25344A;
     border: 2px solid white;
     font-size: 12px;
     font-weight: 400;
@@ -408,7 +408,7 @@ content: url('../assets/img/Property\ 1=Variant2.png');
 
 }
 
-@media (max-width: 1500px) {
+@media (max-width: 1750px) {
     .allTasks {
         display: flex;
         flex-direction: column;

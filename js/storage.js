@@ -4,6 +4,29 @@ let contacts = [];
 let users = [];
 let tasks = [];
 
+/**
+ * Sends an authenticated request to Firebase Realtime Database.
+ * Firebase web configuration is public by design; access is protected by the
+ * signed-in user's short-lived ID token and the database security rules.
+ * @param {string} path Database path without the .json suffix.
+ * @param {RequestInit} [options] Fetch options.
+ * @returns {Promise<Response>}
+ */
+async function firebaseRequest(path = '', options = {}) {
+  if (!window.firebaseAuth?.getIdToken) {
+    throw new Error('Firebase Authentication has not been initialized.');
+  }
+
+  const token = await window.firebaseAuth.getIdToken();
+  const url = `${BASE_URL}${path}.json?auth=${encodeURIComponent(token)}`;
+  const response = await fetch(url, options);
+
+  if (!response.ok) {
+    throw new Error(`Firebase request failed (${response.status}).`);
+  }
+  return response;
+}
+
 async function addTask() {
   if (!checkRequiredInput()) {
     return;
@@ -14,7 +37,8 @@ async function addTask() {
     choosedContacts && choosedContacts.length > 0 ? choosedContacts : [];
   let date = document.getElementById("task-due-date");
   let prio = taskPrio;
-  let status = document.getElementById('addTaskOverlay').dataset.status || 'toDo';
+  let status = 'triage';
+  const creator = getCurrentTaskCreator();
 
   task = {
     title: title.value,
@@ -26,6 +50,10 @@ async function addTask() {
     subcategory: subcategoriesChoosed,
     completedSubtasks: subtaskCompleted,
     status: status,
+    creator: creator,
+    source: 'manual',
+    aiGenerated: false,
+    createdAt: new Date().toISOString(),
   };
   await postTask("/task", task);
   await addTaskInit();
@@ -42,6 +70,7 @@ async function addTaskBoard() {
     choosedContacts && choosedContacts.length > 0 ? choosedContacts : [];
   let date = document.getElementById("task-due-date");
   let prio = taskPrio;
+  const creator = getCurrentTaskCreator();
 
 
   task = {
@@ -53,14 +82,18 @@ async function addTaskBoard() {
     category: categoryChoosed,
     subcategory: subcategoriesChoosed,
     completedSubtasks: subtaskCompleted,
-    status: 'toDo',
+    status: 'triage',
+    creator: creator,
+    source: 'manual',
+    aiGenerated: false,
+    createdAt: new Date().toISOString(),
   };
   await postTask("/task", task);
   goToBoard();
 }
 
 async function loadDataTask(path = "/task") {
-  let response = await fetch(BASE_URL + path + ".json");
+  let response = await firebaseRequest(path);
   let responseToJson = await response.json();
   tasks = [];
   if (!responseToJson) {
@@ -80,14 +113,41 @@ async function loadDataTask(path = "/task") {
       category: taskData.category,
       subcategory: taskData.subcategory || [],
       completedSubtasks: taskData.completedSubtasks || [],
-      status: taskData.status || "toDo",
+      status: taskData.status || "triage",
+      creator: taskData.creator || null,
+      source: taskData.source || 'manual',
+      aiGenerated: taskData.aiGenerated === true,
+      createdAt: taskData.createdAt || null,
     });
   }
 }
 
+function getCurrentTaskCreator() {
+  const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+  return {
+    type: 'internal',
+    role: currentUser?.role || 'member',
+    uid: currentUser?.uid || null,
+    name: currentUser?.name || 'Guest',
+    email: currentUser?.email || null,
+  };
+}
+
+/**
+ * Checks whether the current session may mutate a task. The original Join
+ * requirements explicitly give authenticated demo guests access to every
+ * board feature so employers can test the complete application.
+ * @param {Object} taskToCheck
+ * @returns {boolean}
+ */
+function canCurrentUserModifyTask(taskToCheck) {
+  const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+  return Boolean(currentUser?.uid && taskToCheck);
+}
+
 
 async function postTask(path, task) {
-  let response = await fetch(BASE_URL + path + ".json", {
+  let response = await firebaseRequest(path, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -98,7 +158,7 @@ async function postTask(path, task) {
 }
 
 async function changeTask(path, task) {
-  let response = await fetch(BASE_URL + path + ".json", {
+  let response = await firebaseRequest(path, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -111,7 +171,7 @@ async function changeTask(path, task) {
 
 
 async function changeContact(path = "", data = {}) {
-  let response = await fetch(BASE_URL + path + ".json", {
+  let response = await firebaseRequest(path, {
     method: "PUT",
     header: {
       Contact: "application/json",
@@ -122,7 +182,7 @@ async function changeContact(path = "", data = {}) {
 }
 
 async function postContact(path, newContact) {
-  let response = await fetch(BASE_URL + path + ".json", {
+  let response = await firebaseRequest(path, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -134,7 +194,7 @@ async function postContact(path, newContact) {
 
 
 async function deleteDataContact(path = "") {
-  let response = await fetch(BASE_URL + path + ".json", {
+  let response = await firebaseRequest(path, {
     method: "DELETE",
   });
   return responseToJson = await response.json();
@@ -148,7 +208,7 @@ async function deleteContact(contact) {
 }
 
 async function loadDataContacts(path = "/contacts") {
-  let response = await fetch(BASE_URL + path + ".json");
+  let response = await firebaseRequest(path);
   let responseToJson = await response.json();
   contacts = [];
   if (!responseToJson) {
@@ -169,7 +229,7 @@ async function loadDataContacts(path = "/contacts") {
 }
 
 async function fetchUserData(path) {
-  let response = await fetch(BASE_URL + path + ".json");
+  let response = await firebaseRequest(path);
   return (responseToJson = await response.json());
 }
 
@@ -186,30 +246,32 @@ async function loadUserData() {
       id: userKeysArray[index],
       name: userResponse[userKeysArray[index]].name,
       email: userResponse[userKeysArray[index]].email,
-      password: userResponse[userKeysArray[index]].password,
     });
   }
 }
 
-async function postUserData(path, newUser) {
-  let response = await fetch(BASE_URL + path + ".json", {
-    method: "POST",
+async function putUserData(path, userProfile) {
+  let response = await firebaseRequest(path, {
+    method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(newUser),
+    body: JSON.stringify(userProfile),
   });
-  return (responseToJson = await response.json());
+  if (!response.ok) throw new Error("User profile could not be saved.");
+  return response.json();
 }
 
 async function deleteTask(id) {
+  const taskToDelete = tasks.find(taskItem => taskItem.id === id);
+  if (!canCurrentUserModifyTask(taskToDelete)) return;
   await deleteDataTask(`/task/${id}`);
   await loadDataTask();
   renderTasks();
 }
 
 async function deleteDataTask(path) {
-  let response = await fetch(BASE_URL + path + ".json", {
+  let response = await firebaseRequest(path, {
     method: "DELETE"
   });
   return response.json();
@@ -217,6 +279,8 @@ async function deleteDataTask(path) {
 
 async function saveTaskChanges(id) {
   await loadDataTask(); // Call loadDataTask to populate the tasks array
+  const taskToUpdate = tasks.find(taskItem => taskItem.id === id);
+  if (!canCurrentUserModifyTask(taskToUpdate)) return;
   const taskTitle = document.getElementById('task-title').value.trim() || 'Untitled';
   const taskDescription = document.getElementById('at-description').value.trim() || 'No description';
   const taskDueDate = document.getElementById('task-due-date').value || new Date().toISOString().split('T')[0];
@@ -266,6 +330,10 @@ async function saveTaskChanges(id) {
     status: existingTask.status, // Use the existing status
     category: existingTask.category,
     completedSubtasks: existingTask.completedSubtasks,
+    creator: existingTask.creator,
+    source: existingTask.source,
+    aiGenerated: existingTask.aiGenerated,
+    createdAt: existingTask.createdAt,
   };
 
 

@@ -76,7 +76,8 @@ function stopPropagation(event) {
  * @param {string} taskId - The ID of the task being dragged.
  */
 function startDragging(taskId) {
-    currentDraggedElement = taskId;
+    const task = tasks.find(taskItem => taskItem.id === taskId);
+    currentDraggedElement = canCurrentUserModifyTask(task) ? taskId : null;
 }
 
 /**
@@ -96,6 +97,9 @@ function allowDrop(event) {
  */
 async function drop(event) {
     event.preventDefault(); // Prevent default drop behavior
+
+    const draggedTask = tasks.find(taskItem => taskItem.id === currentDraggedElement);
+    if (!canCurrentUserModifyTask(draggedTask)) return;
 
     let dropZone = event.target.closest('.taskContent'); // Identify the drop zone
     if (!dropZone) return;
@@ -130,6 +134,9 @@ async function drop(event) {
  * Re-render tasks to reflect changes
  */
 async function dropMobile(event) {
+
+    const draggedTask = tasks.find(taskItem => taskItem.id === currentDraggedElement);
+    if (!canCurrentUserModifyTask(draggedTask)) return;
 
 
     let touch = event.changedTouches[0];
@@ -170,6 +177,8 @@ async function dropMobile(event) {
 document.addEventListener('touchstart', (event) => {
     const card = event.target.closest('.card');
     if (card) {
+        const task = tasks.find(taskItem => taskItem.id === card.dataset.id);
+        if (!canCurrentUserModifyTask(task)) return;
         currentDraggedElement = card.dataset.id;
         initialX = event.touches[0].clientX;
         initialY = event.touches[0].clientY;

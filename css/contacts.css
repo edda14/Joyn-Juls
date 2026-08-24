@@ -90,7 +90,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    color: white;
+    color: #25344A;
     font-size: 47px;
 }
 
@@ -318,7 +318,7 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: #25344A;
     border: 2px solid white;
     font-size: 12px;
     font-weight: 400;
@@ -363,12 +363,13 @@ body {
 
 #addNewContact {
     display: none;
-    position: absolute;
+    position: fixed;
     top: 0;
     bottom: 0;
     left: 0;
-    right: -6000px;
-    transition: all 0.5s;
+    right: 0;
+    transform: translateX(120vw);
+    transition: transform 0.5s ease-in-out;
     margin: auto;
     flex-direction: row;
     width: 1112px !important;
@@ -382,8 +383,7 @@ body {
 
 
 .slide-right {
-    -webkit-animation: slide-right 250ms ease-in-out;
-    animation: slide-right 250ms ease-in-out;
+    will-change: transform;
 }
 
 .profileDivContact {
@@ -735,12 +735,13 @@ body {
 }
 
 #editContact {
-    position: absolute;
+    position: fixed;
     top: 0;
     bottom: 0;
     left: 0;
-    right: -6000px;
-    transition: all 0.5s;
+    right: 0;
+    transform: translateX(120vw);
+    transition: transform 0.5s ease-in-out;
     margin: auto;
     width: 1112px;
     height: 592px;
@@ -810,7 +811,7 @@ body {
     font-weight: 500;
     line-height: 56.4px;
     text-align: center;
-    color: white;
+    color: #25344A;
 }
 
 #closeAddContactDivResp {
@@ -897,7 +898,7 @@ body {
         margin: auto;
         width: 600px !important;
         right: 0 !important;
-        bottom: -6000px;
+        bottom: 0;
     }
 
     #addNewContactFirstSection {
@@ -1090,7 +1091,7 @@ body {
         margin: auto;
         width: 600px !important;
         right: 0 !important;
-        bottom: -6000px;
+        bottom: 0;
     }
 
     #contactsHeadlineResp img:active {

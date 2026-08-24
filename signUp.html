@@ -46,8 +46,8 @@
                 class="passwordInput passwordInputImg"
                 type="password"
                 placeholder="Password"
-                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
-                title="Password must contain at least 8 characters, including one uppercase letter, one lowercase letter, one number, and one special character."
+                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d\s]).{8,}$"
+                title="Password must contain at least 8 characters, including one uppercase letter, one lowercase letter, one number, and one special character (for example _, !, ?, or #)."
                 required
               />
               <span
@@ -112,6 +112,9 @@
       <a href="./privacyPolicyNoLogin.html" target="_blank">Privacy Policy</a>
       <a href="./legalNoticeNoLogin.html" target="_blank">Legal notice</a>
     </footer>
+    <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth-compat.js"></script>
+    <script src="./js/firebase.js"></script>
     <script src="./js/storage.js"></script>
     <script src="./js/signUp.js"></script>
   </body>

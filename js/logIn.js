@@ -1,12 +1,9 @@
 let isChecked = false;
-let guest = { name: "Guest",
-              email: "guest@gmail.com",
-};
+let guest = { name: "Guest", email: null, role: "guest" };
 
 
 async function logInInit() {
   joinImgAnimation();
-  await loadUserData();
   await loadDataContacts();
   getSavedUser();
   addHoverForLogin();
@@ -89,32 +86,38 @@ async function findUser(event) {
   let email = emailInput.value;
   let password = passwordInput.value;
   let rememberMe = isChecked;
-  let user = users.find((userEmail) => userEmail.email === email);
-
   resetInputBorders(emailInput, passwordInput);
 
-  if (isValidUser(user, password)) {
-    sessionStorage.setItem('currentUser', JSON.stringify(user));  
-    if (rememberMe) {
-      let userToSave = { email: user.email, password: user.password };
-      sessionStorage.setItem("savedUser", JSON.stringify(userToSave));
-    } else {
-      sessionStorage.removeItem("savedUser");
-    }
+  try {
+    const firebaseUser = await window.firebaseAuth.loginWithEmail(
+      email.trim().toLowerCase(),
+      password,
+      rememberMe
+    );
+    const user = {
+      uid: firebaseUser.uid,
+      name: firebaseUser.displayName || email.split("@")[0],
+      email: firebaseUser.email,
+    };
+    sessionStorage.setItem('currentUser', JSON.stringify(user));
     await addNewContact(user.name, user.email);
     redirectToSummary();
-  } else {
-    handleInvalidUser(user, emailInput, passwordInput, password);
+  } catch (error) {
+    handleInvalidUser(emailInput, passwordInput);
+    console.error("Firebase login failed:", error.code);
   }
 }
 
 async function addNewContact(name, email) {
-  let youName = name + ' (You)';
-  const colorIndex = Math.floor(Math.random() * beautifulColors.length); // Zufälliger Index für Farbe
-  const color = beautifulColors[colorIndex];
+  const existingContact = contacts.find(
+    contact => contact.mail && contact.mail.toLowerCase() === email.toLowerCase()
+  );
+  if (existingContact) return;
+
+  const color = getRandomProfileColor();
   const initial = extractInitials(name); // Annahme: extractInitials ist bereits implementiert
   const newContact = {
-      name: youName,
+      name: name,
       mail: email,
       phone: '', // Da wir keine Telefonnummer während der Registrierung erhalten
       profileColor: color,
@@ -130,24 +133,29 @@ function resetInputBorders(emailInput, passwordInput) {
 }
 
 
-function isValidUser(user, password) {
-  return user && user.password === password;
-}
-
-
 function redirectToSummary() {
   window.location.href = "./summary.html";
 }
 
-function guestLogin() {
+async function guestLogin() {
   let form = document.querySelector('form');
-  sessionStorage.setItem('currentUser', JSON.stringify(guest));
-  form.reset();
-  redirectToSummary();
+  try {
+    const firebaseUser = await window.firebaseAuth.loginAnonymously();
+    sessionStorage.setItem('currentUser', JSON.stringify({
+      ...guest,
+      uid: firebaseUser.uid,
+      isAnonymous: true,
+    }));
+    form.reset();
+    redirectToSummary();
+  } catch (error) {
+    console.error('Firebase guest login failed:', error.code);
+    alert('Guest login is currently unavailable. Please try again shortly.');
+  }
 }
 
 
-function handleInvalidUser(user, emailInput, passwordInput, password) {
+function handleInvalidUser(emailInput, passwordInput) {
   let passwordAlert = document.querySelector(".passwordAlert");
   let rememberMe = document.querySelector(".rememberMe");
 
@@ -158,11 +166,7 @@ function handleInvalidUser(user, emailInput, passwordInput, password) {
     rememberMe.style.margin = "1px 42px 16px 42px";
   };
 
-  if (!user) {
-    handleInvalidInput();
-  } else if (user.password !== password) {
-    handleInvalidInput();
-  }
+  handleInvalidInput();
 
   return false;
 }
@@ -237,11 +241,5 @@ function toggleCheckbox(img) {
 
 
 function getSavedUser() {
-  let savedUser = sessionStorage.getItem("savedUser");
-  if (savedUser) {
-    let user = JSON.parse(savedUser);
-    document.getElementById("logInEmailInput").value = user.email;
-    document.getElementById("logInPasswordInput").value = user.password;
-  }
+  // Firebase Auth manages persistent sessions without storing passwords in web storage.
 }
-

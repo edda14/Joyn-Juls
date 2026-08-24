@@ -18,7 +18,39 @@
 
 <body onload="initBoard(); addTaskInit()">
     <header w3-include-html="./template/header.html"></header>
-    <aside w3-include-html="./template/nav.html"></aside>
+    <aside>
+      <div class="navbar">
+        <img class="joinIcon" src="./assets/img/joinWhite.png" alt="Join Icon" />
+        <div class="navbarContent">
+          <div class="menu">
+            <a id="summaryMenu" href="./summary.html" class="summery">
+              <img src="./assets/img/summeryIcon.png" alt="Summary" />
+              <p>Summary</p>
+            </a>
+            <a id="boardMenuResposive" href="./board.html" class="boardResposive currentPage">
+              <img src="./assets/img/boardIcon.png" alt="Board" />
+              <p>Board</p>
+            </a>
+            <a id="addTaskMenu" href="./addTask.html" class="addTask">
+              <img src="./assets/img/addTask.png" alt="Add Task" />
+              <p>Add Task</p>
+            </a>
+            <a id="boardMenu" href="./board.html" class="board currentPage">
+              <img src="./assets/img/boardIcon.png" alt="Board" />
+              <p>Board</p>
+            </a>
+            <a id="contactsMenu" href="./contacts.html" class="conntacts">
+              <img src="./assets/img/contacktsIcon.png" alt="Contacts" />
+              <p>Contacts</p>
+            </a>
+          </div>
+          <div class="policy">
+            <a id="privacyPolicyMenu" href="./privacyPolicy.html">Privacy Policy</a>
+            <a id="legalNoticeMenu" href="./legalNotice.html">Legal notice</a>
+          </div>
+        </div>
+      </div>
+    </aside>
     <div class="main-content-wrapper">
         <main class="content">
             <section class="headerClass">
@@ -35,9 +67,15 @@
             <section class="allTasks">
                 <div class="todo">
                     <div class="tasksHeader">
+                        <span>Triage</span>
+                    </div>
+                    <div id="triage" class="taskContent" ondrop="drop(event)" ondragover="allowDrop(event)">
+
+                    </div>
+                </div>
+                <div class="todo">
+                    <div class="tasksHeader">
                         <span>To do</span>
-                        <img onclick="showOverlay();stopPropagation(event)" class="plussButton"
-                            src="./assets/img/plus button.png" alt="plus button">
                     </div>
                     <div id="toDo" class="taskContent" ondrop="drop(event)" ondragover="allowDrop(event)">
 
@@ -46,8 +84,6 @@
                 <div class="todo">
                     <div class="tasksHeader">
                         <span>In progress</span>
-                        <img onclick="showOverlay('progress')" class="plussButton" src="./assets/img/plus button.png"
-                            alt="plus button">
                     </div>
                     <div id="progress" class="taskContent" ondrop="drop(event)" ondragover="allowDrop(event)">
 
@@ -56,8 +92,6 @@
                 <div class="todo">
                     <div class="tasksHeader">
                         <span>Await feedback</span>
-                        <img onclick="showOverlay('feedback')" class="plussButton" src="./assets/img/plus button.png"
-                            alt="plus button">
                     </div>
                     <div id="feedback" class="taskContent" ondrop="drop(event)" ondragover="allowDrop(event)">
 
@@ -76,10 +110,10 @@
         <div onclick="off()" id="overlay">
             <div class="overlayContent" onclick="stopPropagation(event)"></div>
         </div>
-        <div onclick="offAddTask()" id="addTaskOverlay" class="overlay">
-            <div class="overlayContentAddTask overlayContentAddTask-template">
+        <div onclick="offAddTask(event)" id="addTaskOverlay" class="overlay">
+            <div class="overlayContentAddTask overlayContentAddTask-template" onclick="event.stopPropagation()">
                 <div class="innerOverlay">                
-                <div onclick="offAddTask()" class="closeButtonDiv"><img class="closeButtonAdd"
+                <div onclick="offAddTask(event, true)" class="closeButtonDiv"><img class="closeButtonAdd"
                         src="./assets/img/Close.png" alt=""></div>
                 <div class="at-headline input-container-bordHTML-headline"><div>Add Task</div></div>
                 <form id="board-edit-task-main-input" class="main-input-container input-container-bordHTML"
@@ -92,6 +126,9 @@
                 <div>Task added to Board</div><img src="./assets/img/boardIcon.png" alt="">
             </div>
         </div>
+        <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth-compat.js"></script>
+        <script src="./js/firebase.js"></script>
         <script src="./js/board.js" defer></script>
         <script src="./js/template.js"></script>
         <script src="./js/contacts.js"></script>

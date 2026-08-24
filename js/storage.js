@@ -27,71 +27,38 @@ async function firebaseRequest(path = '', options = {}) {
   return response;
 }
 
+/** Creates a manual task from the standalone Add Task page. */
 async function addTask() {
-  if (!checkRequiredInput()) {
-    return;
-  }
-  let title = document.getElementById("task-title");
-  let description = document.getElementById("at-description");
-  let assignedTo =
-    choosedContacts && choosedContacts.length > 0 ? choosedContacts : [];
-  let date = document.getElementById("task-due-date");
-  let prio = taskPrio;
-  let status = 'triage';
-  const creator = getCurrentTaskCreator();
-
-  task = {
-    title: title.value,
-    description: description.value,
-    assignedTo: assignedTo,
-    date: date.value,
-    prio: prio,
-    category: categoryChoosed,
-    subcategory: subcategoriesChoosed,
-    completedSubtasks: subtaskCompleted,
-    status: status,
-    creator: creator,
-    source: 'manual',
-    aiGenerated: false,
-    createdAt: new Date().toISOString(),
-  };
+  if (!checkRequiredInput()) return;
+  task = buildManualTask();
   await postTask("/task", task);
   await addTaskInit();
   goToBoard();
 }
 
+/** Creates a manual task from the Board overlay. */
 async function addTaskBoard() {
-  if (!checkRequiredInput()) {
-    return;
-  }
-  let title = document.getElementById("task-title");
-  let description = document.getElementById("at-description");
-  let assignedTo =
-    choosedContacts && choosedContacts.length > 0 ? choosedContacts : [];
-  let date = document.getElementById("task-due-date");
-  let prio = taskPrio;
-  const creator = getCurrentTaskCreator();
-
-
-  task = {
-    title: title.value,
-    description: description.value,
-    assignedTo: assignedTo,
-    date: date.value,
-    prio: prio,
-    category: categoryChoosed,
-    subcategory: subcategoriesChoosed,
-    completedSubtasks: subtaskCompleted,
-    status: 'triage',
-    creator: creator,
-    source: 'manual',
-    aiGenerated: false,
-    createdAt: new Date().toISOString(),
-  };
+  if (!checkRequiredInput()) return;
+  task = buildManualTask();
   await postTask("/task", task);
   goToBoard();
 }
 
+/** Builds the shared Firebase representation of a manually created task. */
+function buildManualTask() {
+  return {
+    title: document.getElementById("task-title").value,
+    description: document.getElementById("at-description").value,
+    assignedTo: choosedContacts?.length ? choosedContacts : [],
+    date: document.getElementById("task-due-date").value,
+    prio: taskPrio, category: categoryChoosed,
+    subcategory: subcategoriesChoosed, completedSubtasks: subtaskCompleted,
+    status: 'triage', creator: getCurrentTaskCreator(), source: 'manual',
+    aiGenerated: false, createdAt: new Date().toISOString(),
+  };
+}
+
+/** Loads and normalizes all tasks from Firebase. */
 async function loadDataTask(path = "/task") {
   let response = await firebaseRequest(path);
   let responseToJson = await response.json();
@@ -100,28 +67,20 @@ async function loadDataTask(path = "/task") {
     console.warn("Keine Tasks gefunden oder Firebase gibt null zurück.");
     return;
   }
-  let taskKeysArray = Object.keys(responseToJson);
-  for (let i = 0; i < taskKeysArray.length; i++) {
-    let taskData = responseToJson[taskKeysArray[i]];
-    tasks.push({
-      id: taskKeysArray[i],
-      title: taskData.title,
-      description: taskData.description,
-      assignedTo: taskData.assignedTo || [],
-      date: taskData.date,
-      prio: taskData.prio,
-      category: taskData.category,
-      subcategory: taskData.subcategory || [],
-      completedSubtasks: taskData.completedSubtasks || [],
-      status: taskData.status || "triage",
-      creator: taskData.creator || null,
-      source: taskData.source || 'manual',
-      aiGenerated: taskData.aiGenerated === true,
-      createdAt: taskData.createdAt || null,
-    });
-  }
+  tasks = Object.entries(responseToJson).map(([id, data]) => normalizeTask(id, data));
 }
 
+/** Converts a Firebase task record into the format used by the UI. */
+function normalizeTask(id, data) {
+  return { id, title: data.title, description: data.description,
+    assignedTo: data.assignedTo || [], date: data.date, prio: data.prio,
+    category: data.category, subcategory: data.subcategory || [],
+    completedSubtasks: data.completedSubtasks || [], status: data.status || "triage",
+    creator: data.creator || null, source: data.source || 'manual',
+    aiGenerated: data.aiGenerated === true, createdAt: data.createdAt || null };
+}
+
+/** Returns creator metadata for a manually created task. */
 function getCurrentTaskCreator() {
   const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
   return {
@@ -146,6 +105,7 @@ function canCurrentUserModifyTask(taskToCheck) {
 }
 
 
+/** Appends a task to Firebase and returns its generated key. */
 async function postTask(path, task) {
   let response = await firebaseRequest(path, {
     method: "POST",
@@ -157,6 +117,7 @@ async function postTask(path, task) {
   return (responseToJson = await response.json());
 }
 
+/** Replaces task data at a Firebase path. */
 async function changeTask(path, task) {
   let response = await firebaseRequest(path, {
     method: "PUT",
@@ -170,17 +131,19 @@ async function changeTask(path, task) {
 
 
 
+/** Replaces contact data at a Firebase path. */
 async function changeContact(path = "", data = {}) {
   let response = await firebaseRequest(path, {
     method: "PUT",
-    header: {
-      Contact: "application/json",
+    headers: {
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
   });
   return response.json();
 }
 
+/** Appends a contact to Firebase. */
 async function postContact(path, newContact) {
   let response = await firebaseRequest(path, {
     method: "POST",
@@ -193,6 +156,7 @@ async function postContact(path, newContact) {
 }
 
 
+/** Deletes contact data at a Firebase path. */
 async function deleteDataContact(path = "") {
   let response = await firebaseRequest(path, {
     method: "DELETE",
@@ -200,6 +164,7 @@ async function deleteDataContact(path = "") {
   return responseToJson = await response.json();
 }
 
+/** Deletes a contact and refreshes the contact page. */
 async function deleteContact(contact) {
   await deleteDataContact(contact);
   await loadDataContacts();
@@ -207,6 +172,7 @@ async function deleteContact(contact) {
   document.getElementById('viewContact').innerHTML = '';
 }
 
+/** Loads all contacts from Firebase. */
 async function loadDataContacts(path = "/contacts") {
   let response = await firebaseRequest(path);
   let responseToJson = await response.json();
@@ -228,11 +194,13 @@ async function loadDataContacts(path = "/contacts") {
   }
 }
 
+/** Fetches user data from Firebase. */
 async function fetchUserData(path) {
   let response = await firebaseRequest(path);
   return (responseToJson = await response.json());
 }
 
+/** Loads all registered member profiles. */
 async function loadUserData() {
   let userResponse = await fetchUserData("users");
   users = [];
@@ -250,6 +218,7 @@ async function loadUserData() {
   }
 }
 
+/** Stores a member profile at its Firebase UID path. */
 async function putUserData(path, userProfile) {
   let response = await firebaseRequest(path, {
     method: "PUT",
@@ -262,6 +231,7 @@ async function putUserData(path, userProfile) {
   return response.json();
 }
 
+/** Deletes a permitted task and refreshes the board. */
 async function deleteTask(id) {
   const taskToDelete = tasks.find(taskItem => taskItem.id === id);
   if (!canCurrentUserModifyTask(taskToDelete)) return;
@@ -270,6 +240,7 @@ async function deleteTask(id) {
   renderTasks();
 }
 
+/** Deletes task data at a Firebase path. */
 async function deleteDataTask(path) {
   let response = await firebaseRequest(path, {
     method: "DELETE"
@@ -277,78 +248,66 @@ async function deleteDataTask(path) {
   return response.json();
 }
 
+/** Saves the values from the edit overlay to Firebase. */
 async function saveTaskChanges(id) {
-  await loadDataTask(); // Call loadDataTask to populate the tasks array
-  const taskToUpdate = tasks.find(taskItem => taskItem.id === id);
-  if (!canCurrentUserModifyTask(taskToUpdate)) return;
-  const taskTitle = document.getElementById('task-title').value.trim() || 'Untitled';
-  const taskDescription = document.getElementById('at-description').value.trim() || 'No description';
-  const taskDueDate = document.getElementById('task-due-date').value || new Date().toISOString().split('T')[0];
-
-  // Überprüfen und setzen der Priorität
-  let taskPriority;
-  const urgentElement = document.querySelector('.at-bg-urgent');
-  const mediumElement = document.querySelector('.at-bg-medium');
-  const lowElement = document.querySelector('.at-bg-low');
-
-  if (urgentElement) {
-    taskPriority = 'urgent';
-  } else if (mediumElement) {
-    taskPriority = 'medium';
-  } else if (lowElement) {
-    taskPriority = 'low';
-  } else {
-    taskPriority = 'low'; // Standardwert
-  }
-
-  // Retrieve existing task data
-  let existingTask;
-  for (const task of tasks) {
-    if (task.id === id) {
-      existingTask = task;
-      break;
-    }
-  }
-
-  // Get the updated subcategories from the edit overlay
-  const subcategories = Array.from(document.querySelectorAll('.choosed-subcategory-input')).map(input => input.value) || [];
-  const assignedToContacts = Array.from(document.querySelectorAll('.at-label-checkbox input[type="checkbox"]:checked')).map(input => {
-    const contactId = input.getAttribute('data-contact-id');
-    const contactColor = input.getAttribute('data-contact-color');
-    const contactInitials = input.getAttribute('data-contact-initials');
-    return { id: contactId, color: contactColor, initial: contactInitials };
-  });
-
-
-  const updatedTask = {
-    title: taskTitle,
-    description: taskDescription,
-    date: taskDueDate,
-    prio: taskPriority,
-    subcategory: subcategories.length > 0 ? subcategories : existingTask.subcategory, // Use the updated subcategories if they exist, otherwise use the existing ones
-    assignedTo: assignedToContacts.length > 0 ? assignedToContacts : existingTask.assignedTo,
-    status: existingTask.status, // Use the existing status
-    category: existingTask.category,
-    completedSubtasks: existingTask.completedSubtasks,
-    creator: existingTask.creator,
-    source: existingTask.source,
-    aiGenerated: existingTask.aiGenerated,
-    createdAt: existingTask.createdAt,
-  };
-
-
+  await loadDataTask();
+  const existingTask = tasks.find(item => item.id === id);
+  if (!canCurrentUserModifyTask(existingTask)) return;
   try {
-    // Überprüfen, was an das Backend gesendet wird
-    await changeTask(`/task/${id}`, updatedTask);
-
-    // Überprüfen, ob die Aufgabe nach dem Speichern korrekt neu geladen wird
-    await loadDataTask();
-    renderTasks();
-    subcategoriesChoosed = [];
-    // Schließen des Overlays
-    off();
+    await changeTask(`/task/${id}`, buildUpdatedTask(existingTask));
+    await refreshBoardAfterTaskSave();
   } catch (error) {
     console.error('Fehler beim Speichern der Änderungen:', error);
   }
-  clearEditTaskOverlayContent()
+  clearEditTaskOverlayContent();
+}
+
+/** Builds a task object from edit-overlay values and immutable task data. */
+function buildUpdatedTask(existingTask) {
+  const subtasks = readEditedSubtasks();
+  const assignees = readEditedAssignees();
+  return { title: readTaskInput('task-title', 'Untitled'),
+    description: readTaskInput('at-description', 'No description'),
+    date: document.getElementById('task-due-date').value || todayAsIsoDate(),
+    prio: getSelectedPriority(), subcategory: subtasks.length ? subtasks : existingTask.subcategory,
+    assignedTo: assignees.length ? assignees : existingTask.assignedTo,
+    status: existingTask.status, category: existingTask.category,
+    completedSubtasks: existingTask.completedSubtasks, creator: existingTask.creator,
+    source: existingTask.source, aiGenerated: existingTask.aiGenerated,
+    createdAt: existingTask.createdAt };
+}
+
+/** Reads a trimmed task input and applies its fallback value. */
+function readTaskInput(id, fallback) {
+  return document.getElementById(id).value.trim() || fallback;
+}
+
+/** Returns today's local-independent ISO date. */
+function todayAsIsoDate() {
+  return new Date().toISOString().split('T')[0];
+}
+
+/** Reads all edited subtask labels. */
+function readEditedSubtasks() {
+  return Array.from(document.querySelectorAll('.choosed-subcategory-input'), input => input.value);
+}
+
+/** Converts one selected contact checkbox into task assignee metadata. */
+function checkboxToAssignee(input) {
+  return { id: input.dataset.contactId, color: input.dataset.contactColor,
+    initial: input.dataset.contactInitials };
+}
+
+/** Reads selected contacts from the edit overlay. */
+function readEditedAssignees() {
+  const selector = '.at-label-checkbox input[type="checkbox"]:checked';
+  return Array.from(document.querySelectorAll(selector), checkboxToAssignee);
+}
+
+/** Refreshes the board and closes the task overlay after a successful save. */
+async function refreshBoardAfterTaskSave() {
+  await loadDataTask();
+  renderTasks();
+  subcategoriesChoosed = [];
+  off();
 }

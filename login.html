@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="./assets/img/joinDark.png" type="image/x-icon" />
+    <link rel="stylesheet" href="./css/login.css" />
+    <title>Join – Log in</title>
+  </head>
+  <body onload="logInInit()">
+    <header>
+      <a href="./index.html" aria-label="Back to welcome page">
+        <img class="joinIcon" src="./assets/img/joinDark.png" alt="Join" />
+      </a>
+      <div class="signUPContainer">
+        <p class="singupText">Not a Join user?</p>
+        <button class="signUp" onclick="redirectToSignup()">Sign up</button>
+      </div>
+    </header>
+    <main class="justifyLogInContainer">
+      <div class="logInContainer">
+        <h1 class="logIntText">Log in</h1>
+        <form onsubmit="findUser(event)">
+          <div class="logInInput">
+            <input id="logInEmailInput" class="emailInput" type="email" placeholder="Email" required />
+            <div class="logInPasswordContainer">
+              <input onblur="handlepaswordImg(this)" onfocus="handlepaswordStyle(this)" id="logInPasswordInput" class="passwordInput passwordInputImg" type="password" placeholder="Password" required />
+              <span class="paswordVisibilityBTN" onclick="handlePaswordVisibility()"></span>
+              <span class="passwordAlert dNone">Check your email and password. Please try again.</span>
+            </div>
+          </div>
+          <div class="rememberMe">
+            <div class="checkboxContainer">
+              <img id="checkbox" class="checkbox" src="./assets/img/emptyCheckbox.png" alt="Checkbox" onclick="toggleCheckbox(this)" />
+              <img class="dNone" id="checkmark" src="./assets/img/okBlack.png" alt="check" />
+            </div>
+            <p>Remember me</p>
+          </div>
+          <div class="logInButtons">
+            <button id="logIn" type="submit" class="logIn">Log in</button>
+            <button type="button" class="GuestLogIn" onclick="guestLogin()">Guest Log in</button>
+          </div>
+        </form>
+      </div>
+      <div id="resposivSignup" class="resposivSignup">
+        <div class="signUPContainerResposiv">
+          <p class="singupTextResposiv">Not a Join user?</p>
+          <button class="signUpResposiv" onclick="redirectToSignup()">Sign up</button>
+        </div>
+      </div>
+    </main>
+    <footer>
+      <a href="./privacyPolicyNoLogin.html" target="_blank">Privacy Policy</a>
+      <a href="./legalNoticeNoLogin.html" target="_blank">Legal notice</a>
+    </footer>
+    <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth-compat.js"></script>
+    <script src="./js/firebase.js"></script>
+    <script src="./js/logIn.js"></script>
+    <script src="./js/storage.js"></script>
+    <script src="./js/contacts.js"></script>
+    <script src="./js/template.js"></script>
+  </body>
+</html>

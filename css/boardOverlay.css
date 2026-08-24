@@ -22,13 +22,15 @@
 }
 
 .overlayContent {
+    display: flex;
+    flex-direction: column;
     margin: auto;
     box-sizing: border-box;
     width: 525px;
-    max-height: 75vh;
-    height: 100%;
+    height: calc(100dvh - 120px);
+    max-height: calc(100dvh - 120px);
     padding: 48px 40px;
-    gap: 24px;
+    gap: 0;
     border-radius: 30px;
     background-color: white;
     cursor: auto;
@@ -42,6 +44,10 @@
     animation: slideIn 0.5s ease-out;
     z-index: 100000;
     
+}
+
+.overlayContent > section {
+    flex-shrink: 0;
 }
 
 /* The task remains scrollable, but the scrollbar cannot protrude past the
@@ -92,18 +98,11 @@
 }
 
 .aiGeneratedHint {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: #9747ff;
-    font-size: 16px;
-    font-weight: 400;
-}
-
-.aiGeneratedHint svg {
-    width: 20px;
-    height: 20px;
-    fill: currentColor;
+    display: block;
+    width: auto;
+    height: 24px;
+    max-width: min(190px, 100%);
+    object-fit: contain;
 }
 
 .overlayUser {
@@ -181,10 +180,17 @@
 
 .overlayTitle {
     font-family: Inter;
-    font-size: 61px;
+    font-size: clamp(32px, 5vw, 56px);
     font-weight: 700;
-    line-height: 73.2px;
+    line-height: 1.15;
     text-align: left;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .overlayContext {
@@ -427,6 +433,11 @@ input[type="checkbox"]:checked::after {
     display: flex;
     justify-content: flex-end;
     margin-top: 24px;
+}
+
+.taskActions {
+    margin-top: auto;
+    flex-shrink: 0;
 }
 
 .deletePng {

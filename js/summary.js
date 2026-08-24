@@ -1,5 +1,6 @@
 let newUser = JSON.parse(sessionStorage.getItem('currentUser'));
 
+/** Initializes data and layout for the summary page. */
 async function summeryInit() {
     await includeHTML();
     await loadDataTask();
@@ -11,6 +12,7 @@ async function summeryInit() {
     checkResposive();
 }
 
+/** Opens the board, optionally at a specific section. */
 function redirectToBoard(sectionId) {
   if (sectionId) {
      
@@ -21,6 +23,7 @@ function redirectToBoard(sectionId) {
   }
 }
 
+/** Updates the time-dependent greeting. */
 function updateGreeting() {
   let greetingText = document.getElementById('greetingText');
   let currentHour = new Date().getHours();
@@ -34,6 +37,7 @@ function updateGreeting() {
   }
 }
 
+/** Renders the current user's name. */
 function userName() {
   let userNameContainer = document.getElementById('userName');
   let currentUser = newUser.name;
@@ -43,6 +47,7 @@ function userName() {
   `
 }
 
+/** Calculates and renders all summary metrics. */
 function updateSummary() {
   let tasksInBoard = tasks.length;
   let tasksInProgress = tasks.filter(task => task.status === 'progress').length;
@@ -63,12 +68,14 @@ function updateSummary() {
   document.getElementById('toDo').textContent = toDo;
 }
 
+/** Formats an ISO date for the summary deadline card. */
 function formatDate(dateString) {
   let date = new Date(dateString);
   let options = { month: 'long', day: 'numeric', year: 'numeric' };
   return date.toLocaleDateString('en-US', options);
 }
 
+/** Selects the responsive greeting presentation. */
 function checkResposive() {
   let mediaQuery = window.matchMedia("(max-width: 980px)");
   let previousPath = document.referrer;
@@ -86,6 +93,7 @@ function checkResposive() {
   }
 }
 
+/** Runs or skips the responsive greeting animation. */
 function greetingAnimation(background, animatedImage, mediaQuery) {
 
   if (mediaQuery) {
@@ -96,6 +104,7 @@ function greetingAnimation(background, animatedImage, mediaQuery) {
 }
 
 
+/** Starts the greeting fade-out transition. */
 function startAnimation(background, animatedImage) {
     background.classList.add("fadeOut");
     animatedImage.classList.add("fadeOut");
@@ -105,6 +114,7 @@ function startAnimation(background, animatedImage) {
     }, 1500);
 }
 
+/** Hides responsive greeting elements. */
 function hideElements(background, animatedImage) {
   background.style.display ='none';
   animatedImage.style.display ='none';

@@ -3,104 +3,47 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="Join icon" href="./assets/img/joinDark.png" type="image/x-icon" />
-    <link rel="stylesheet" href="./css/login.css" />
-    <title>Log in</title>
+    <meta name="description" content="Submit a feature request or enter the Join Kanban board." />
+    <link rel="icon" href="./assets/img/joinDark.png" type="image/x-icon" />
+    <link rel="stylesheet" href="./css/landing.css" />
+    <title>Join – Welcome</title>
   </head>
-  <body onload="logInInit()">
-    <header>
-      <div>
-        <img
-          class="joinIcon hideElements"
-          src="./assets/img/joinDark.png"
-          alt="Join Icon"
-        />
-        <img
-          class="animatedImage"
-          src="./assets/img/joinDark.png"
-          alt="Animated Join Icon"
-        />
-        <img 
-          class="animatedImageResposive dNone"
-          src="./assets/img/joinWhite.png" 
-          alt="Join Icon"
-        />
-        <div class="animatedImageContainer"></div> 
-      </div>
-
-      <div class="signUPContainer">
-        <p class="singupText">Not a Join user?</p>
-        <button class="signUp" onclick="redirectToSignup()">Sign up</button>
-      </div>
-    </header>
-    <div class="justifyLogInContainer">
-      <div class="logInContainer">
-        <h2 class="logIntText">Log in</h2>
-        <form onsubmit="findUser(event)">
-          <div class="logInInput">
-            <input
-              id="logInEmailInput"
-              class="emailInput"
-              type="email"
-              placeholder="Email"
-              required
-            />
-            <div class="logInPasswordContainer">
-              <input
-              onblur="handlepaswordImg(this)"
-              onfocus="handlepaswordStyle(this)"
-              id="logInPasswordInput"
-              class="passwordInput passwordInputImg"
-              type="password"
-              placeholder="Password"
-              required
-            />
-            <span class="paswordVisibilityBTN" onclick="handlePaswordVisibility()"></span>
-            <span class="passwordAlert dNone">Check your email and password. Please try again.</span>
-            </div>
-          </div>
-          <div class="rememberMe">
-            <div class="checkboxContainer">
-              <img
-                id="checkbox"
-                class="checkbox"
-                src="./assets/img/emptyCheckbox.png"
-                alt="Checkbox"
-                onclick="toggleCheckbox(this)"
-              />
-              <img
-                class="dNone"
-                id="checkmark"
-                src="./assets/img/okBlack.png"
-                alt="check"
-              />
-            </div>
-            <p>Remember me</p>
-          </div>
-          <div class="logInButtons">
-            <button id="logIn" type="submit" class="logIn">Log in</button>
-            <button type="button" class="GuestLogIn" onclick="guestLogin()">Guest Log in</button>
-          </div>
-        </form>
-      </div>
-      <div id="resposivSignup" class="resposivSignup">
-        <div class="signUPContainerResposiv">
-          <p class="singupTextResposiv">Not a Join user?</p>
-          <button class="signUpResposiv" onclick="redirectToSignup()">Sign up</button>
-        </div>
-      </div>
+  <body class="welcomePage">
+    <div class="intro" aria-hidden="true">
+      <img class="introLogo" src="./assets/img/joinWhite.png" alt="" />
     </div>
-    <footer>
-      <a href="./privacyPolicyNoLogin.html" target="_blank">Privacy Policy</a>
-      <a href="./legalNoticeNoLogin.html" target="_blank">Legal notice</a>
+    <header class="welcomeMobileHeader">
+      <a href="./index.html" class="welcomeMobileBrand" aria-label="Join welcome page">
+        <img src="./assets/img/joinWhite.png" alt="Join" />
+      </a>
+      <p>Not a Join user? <a href="./signUp.html">Sign up</a></p>
+    </header>
+    <main class="welcomeMain">
+      <section class="welcomeCard" aria-labelledby="welcome-title">
+        <h1 id="welcome-title" class="welcomeTitle">Welcome</h1>
+        <p class="welcomeText">Pick the option that suits your role: create a request as a stakeholder or log in if you’re part of the team.</p>
+        <div class="roleOptions">
+          <article class="roleOption">
+            <p class="roleText">
+              <img class="roleIcon" src="./assets/img/work.svg" alt="" aria-hidden="true" />
+              Are you a stakeholder?
+            </p>
+            <a class="landingButton primaryButton" href="./stakeholder.html">Create request</a>
+          </article>
+          <article class="roleOption">
+            <p class="roleText">
+              <img class="roleIcon" src="./assets/img/Frame-245.svg" alt="" aria-hidden="true" />
+              Are you a team member?
+            </p>
+            <a class="landingButton secondaryButton" href="./login.html">Member log in</a>
+          </article>
+        </div>
+      </section>
+    </main>
+    <footer class="landingFooter darkFooter">
+      <a href="./privacyPolicyNoLogin.html">Privacy Policy</a>
+      <a href="./legalNoticeNoLogin.html">Legal notice</a>
     </footer>
-
-    <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth-compat.js"></script>
-    <script src="./js/firebase.js"></script>
-    <script src="./js/logIn.js"></script>
-    <script src="./js/storage.js"></script>
-    <script src="./js/contacts.js"></script>
-    <script src="./js/template.js"></script>
+    <script src="./js/landing.js"></script>
   </body>
 </html>

@@ -1,3 +1,4 @@
+/** Loads board data, shared navigation, and the initial task cards. */
 async function initBoard() {
     await loadDataTask();
     await loadDataContacts();
@@ -15,46 +16,45 @@ async function initBoard() {
  * Ensure columns display empty messages if needed
  */
 function renderTasks() {
-    const columns = {
-        triage: document.getElementById('triage'),
-        toDo: document.getElementById('toDo'),
-        progress: document.getElementById('progress'),
-        feedback: document.getElementById('feedback'),
-        done: document.getElementById('done')
-    };
-
-    
+    const columns = getBoardColumns();
     Object.values(columns).forEach(column => column.innerHTML = '');
+    tasks.forEach((task, index) => renderTaskCard(task, index, columns));
+    checkIfEmpty();
+}
 
-    tasks.forEach((task, i) => {
-        const { id, subcategory, completedSubtasks, assignedTo, category, prio, status } = task;
+/** Returns the board status-to-column mapping. */
+function getBoardColumns() {
+    return { triage: document.getElementById('triage'), toDo: document.getElementById('toDo'),
+        progress: document.getElementById('progress'), feedback: document.getElementById('feedback'),
+        done: document.getElementById('done') };
+}
 
-        let subtaskHTML = getSubtask(task);
-        let editSubtask = getEditSubtaskHTML(subcategory);
-        let completedCount = completedSubtasks.filter(completed => completed === 'true').length;
-        let taskAssignee = getTaskAssignee(assignedTo);
-        let taskPriorityIcon = getPriorityIcon(prio);
-        let taskTypeBackgroundColor = category === 'User Story' ? '#1FD7C1' : '';
+/** Creates one task card and appends it to its status column. */
+function renderTaskCard(task, index, columns) {
+    const view = getTaskCardView(task);
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = getTaskTemplate(task, index, view.color, task.category,
+        view.assignees, view.priorityIcon, view.completedCount, view.editSubtasks,
+        task.id, view.subtasks);
+    wrapper.addEventListener('click', event => openTaskFromCard(event, task, view));
+    (columns[task.status] || columns.triage).appendChild(wrapper);
+    updateProgressBar(view.completedCount, task.subcategory.length, index);
+}
 
-        
-        let newTask = document.createElement('div');
-        newTask.innerHTML = getTaskTemplate(task, i, taskTypeBackgroundColor, category, taskAssignee, taskPriorityIcon, completedCount, editSubtask, id, subtaskHTML);
+/** Collects derived values needed to render a task card and overlay. */
+function getTaskCardView(task) {
+    return { subtasks: getSubtask(task), editSubtasks: getEditSubtaskHTML(task.subcategory),
+        completedCount: task.completedSubtasks.filter(value => value === 'true').length,
+        assignees: getTaskAssignee(task.assignedTo), priorityIcon: getPriorityIcon(task.prio),
+        color: task.category === 'User Story' ? '#1FD7C1' : '' };
+}
 
-        
-        newTask.addEventListener('click', event => {
-            event.stopPropagation();
-            showOverlay1(task.title, task.description, task.date, prio, assignedTo, category, subtaskHTML, id, editSubtask, task.creator, task.aiGenerated);
-        });
-
-        
-        let targetColumn = columns[status] || columns.triage;
-        targetColumn.appendChild(newTask);
-
-        
-        updateProgressBar(completedCount, subcategory.length, i);
-    });
-
-    checkIfEmpty(); 
+/** Stops card event bubbling and opens its detail overlay. */
+function openTaskFromCard(event, task, view) {
+    event.stopPropagation();
+    showOverlay1(task.title, task.description, task.date, task.prio, task.assignedTo,
+        task.category, view.subtasks, task.id, view.editSubtasks, task.creator,
+        task.aiGenerated);
 }
 
 /**
@@ -96,45 +96,42 @@ function getTaskAssignee(assignedTo) {
 async function showOverlay1(taskTitle, taskDescription, taskDueDate, taskPriority, taskAssignees, taskType, subtaskHTML, id, editSubtask, taskCreator, aiGenerated) {
     const overlay = document.getElementById("overlay");
     const overlayContent = document.querySelector(".overlayContent");
-
-    let taskPriorityIcon = getPriorityIcon(taskPriority);
-    let taskTypeBackgroundColor = taskType === 'User Story' ? '#1FD7C1' : '';
-    let assigneeOverlayContent = Array.isArray(taskAssignees) && taskAssignees.length > 0
-        ? taskAssignees.map(assignee => {
-            let contact = contacts.find(contact => contact.id === assignee.id);
-            return contact ? `
-                <div class="contactDiv">
-                    <span class="contactCard" style="background-color: ${assignee.color};"> ${assignee.initial}</span>
-                    <span class="contactName">${getContactDisplayName(contact)}</span>
-                </div>
-            ` : '';
-        }).join('')
-        : '';
-
-    // Use the template function to get the HTML string
-    const templateHTML = getOverlayTemplate(
-        taskTitle,
-        taskDescription,
-        taskDueDate,
-        taskPriority,
-        taskPriorityIcon,
-        taskType,
-        taskTypeBackgroundColor,
-        assigneeOverlayContent,
-        subtaskHTML,
-        id,
-        taskCreator,
-        aiGenerated
-    );
-
-    // Insert the generated HTML into the overlay content
-    overlayContent.innerHTML = templateHTML;
-
-    overlay.style.display = "flex";
-    overlayContent.style.transform = "translateX(0)";
-    overlayContent.style.opacity = "1";
+    overlayContent.innerHTML = buildTaskOverlayHTML(taskTitle, taskDescription,
+        taskDueDate, taskPriority, taskAssignees, taskType, subtaskHTML, id,
+        taskCreator, aiGenerated);
+    revealTaskOverlay(overlay, overlayContent);
     await includeHTML();
     showInitials();
+}
+
+/** Builds the complete task-detail overlay markup. */
+function buildTaskOverlayHTML(title, description, date, priority, assignees,
+    type, subtasks, id, creator, aiGenerated) {
+    return getOverlayTemplate(title, description, date, priority,
+        getPriorityIcon(priority), type, type === 'User Story' ? '#1FD7C1' : '',
+        getOverlayAssignees(assignees), subtasks, id, creator, aiGenerated);
+}
+
+/** Builds the assignee rows used in the task-detail overlay. */
+function getOverlayAssignees(assignees) {
+    if (!Array.isArray(assignees)) return '';
+    return assignees.map(assignee => getOverlayAssigneeHTML(assignee)).join('');
+}
+
+/** Builds one task-detail assignee row. */
+function getOverlayAssigneeHTML(assignee) {
+    const contact = contacts.find(item => item.id === assignee.id);
+    if (!contact) return '';
+    return `<div class="contactDiv"><span class="contactCard"
+        style="background-color: ${assignee.color};"> ${assignee.initial}</span>
+        <span class="contactName">${getContactDisplayName(contact)}</span></div>`;
+}
+
+/** Makes the task-detail overlay visible. */
+function revealTaskOverlay(overlay, content) {
+    overlay.style.display = 'flex';
+    content.style.transform = 'translateX(0)';
+    content.style.opacity = '1';
 }
 
 /**
@@ -316,65 +313,55 @@ function getPriorityIcon(priority) {
  * Generate the subtask HTML if the task has subcategories
  */
 async function ShowEditOverlay(id) {
-    
     await loadDataTask();
-
-    
     const task = tasks.find(task => task.id === id);
-
     if (!canCurrentUserModifyTask(task)) return;
+    if (!task) return console.error('Task not found');
+    subcategoriesChoosed = [...task.subcategory];
+    await addTaskInit();
+    prepareEditOverlay(id);
+    bindEditSaveButton(id);
+    selectAssignedContacts(task.assignedTo || []);
+    const subtasks = Array.isArray(task.subcategory) ? getEditSubtaskHTML(task.subcategory) : '';
+    renderEditTaskData(id, task.title, task.description, task.date, task.prio, subtasks);
+}
 
-    if (task) {
-        const { title, description, date, prio, subcategory, assignedTo } = task;
-        subcategoriesChoosed = [...subcategory];
+/** Switches the detail overlay into its task-edit form. */
+function prepareEditOverlay(id) {
+    document.getElementById(`edit-task-overlay${id}`).classList.remove('d-none');
+    const form = document.getElementById(`edit-main-input-container${id}`);
+    form.classList.replace('main-input-container', 'edit-main-input-container');
+    ['input-border-container', 'at-alert-description', 'at-btn-container',
+        'category-headline', 'category-input', 'at-subcategory-open', 'editDiv']
+        .forEach(elementId => document.getElementById(elementId)?.classList.add('d-none'));
+    document.querySelector('.right-left-container').style.display = 'block';
+    removeTaskDetailElements();
+}
 
-        await addTaskInit();
-        document.getElementById(`edit-task-overlay${id}`).classList.remove('d-none');
-        document.getElementById(`edit-main-input-container${id}`).classList.remove('main-input-container');
-        document.getElementById(`edit-main-input-container${id}`).classList.add('edit-main-input-container');
-        document.getElementById('input-border-container').classList.add('d-none');
-        document.getElementById('at-alert-description').classList.add('d-none');
-        document.getElementById('at-btn-container').classList.add('d-none');
-        document.getElementById('category-headline').classList.add('d-none');
-        document.getElementById('category-input').classList.add('d-none');
-        document.getElementById('at-subcategory-open').classList.add('d-none');
-        document.getElementById('editDiv').classList.add('d-none');
-        var element = document.querySelector('.right-left-container');
-        element.style.display = 'block';
+/** Removes task-detail elements that are replaced by edit controls. */
+function removeTaskDetailElements() {
+    const selector = '.contactOverlay, .contactDiv, .subtaskOverlay, .checkBoxDiv, '
+        + '.subtasksOverlay, .dateDiv, .prioDiv, .overlayTitle';
+    document.querySelectorAll(selector).forEach(element => element.remove());
+}
 
-        
-        const elementsToRemove = document.querySelectorAll('.contactOverlay, .contactDiv, .subtaskOverlay, .checkBoxDiv, .subtasksOverlay, .dateDiv, .prioDiv, .overlayTitle');
-        elementsToRemove.forEach(element => {
-            element.remove(); 
-        });
+/** Binds the edit overlay save button to the active task. */
+function bindEditSaveButton(id) {
+    document.querySelector('.board-task-edit-btn')
+        .addEventListener('click', () => saveTaskChanges(id), { once: true });
+}
 
-        const saveButton = document.querySelector('.board-task-edit-btn');
-        saveButton.addEventListener('click', () => saveTaskChanges(id));
+/** Marks the task's current assignees in the edit dropdown. */
+function selectAssignedContacts(assignedContacts) {
+    assignedContacts.forEach(contact => selectAssignedContact(contact.id || contact));
+}
 
-        const assignedContacts = assignedTo || []; 
-        assignedContacts.forEach(contact => {
-           
-            const contactId = contact.id || contact; 
-
-            const checkbox = document.querySelector(`input[data-contact-id="${contactId}"]`);
-            if (checkbox) {
-                checkbox.checked = true; 
-                const contactLayout = checkbox.closest('.at-contact-layout');
-                if (contactLayout) {
-                    contactLayout.style.backgroundColor = '#2a3647e0';
-                    contactLayout.style.color = 'white';
-                }
-            } else {
-                console.warn(`Checkbox with ID ${contactId} not found.`);
-            }
-        });
-        
-        const subtaskHTML = Array.isArray(subcategory) ? getEditSubtaskHTML(subcategory) : '';
-
-        renderEditTaskData(id, title, description, date, prio, subtaskHTML);
-    } else {
-        console.error('Task not found');
-    }
+/** Selects one assigned contact in the edit dropdown. */
+function selectAssignedContact(contactId) {
+    const checkbox = document.querySelector(`input[data-contact-id="${contactId}"]`);
+    if (!checkbox) return console.warn(`Checkbox with ID ${contactId} not found.`);
+    checkbox.checked = true;
+    checkbox.closest('.at-contact-layout')?.classList.add('is-selected');
 }
 
 
@@ -396,21 +383,11 @@ function renderEditTaskData(id, taskTitle, taskDescription, taskDueDate, taskPri
     document.getElementById('at-description').value = taskDescription;
     document.getElementById('task-due-date').value = taskDueDate;
 
-    
     document.getElementById('added-subcategories').innerHTML = subtaskHTML;
-
-    
     const priorityIcon = getPriorityIcon(taskPriority);
     const priorityIconElement = document.getElementById('priority-icon');
-
-    if (priorityIconElement && priorityIcon) {
-        priorityIconElement.src = priorityIcon;
-    }
-
-    
-    requestAnimationFrame(() => {
-        setBackgroundColorPrio(taskPriority);
-    });
+    if (priorityIconElement && priorityIcon) priorityIconElement.src = priorityIcon;
+    requestAnimationFrame(() => setBackgroundColorPrio(taskPriority));
 }
 
 /**
@@ -440,57 +417,29 @@ function getSelectedPriority() {
  * Check each section and add "no results" message if needed
  */
 function searchTasks() {
-    let searchInput = document.getElementById('searchInput').value.toLowerCase();
-    let taskCards = document.querySelectorAll('.card');
-
-    
-    let triageContainer = document.getElementById('triage');
-    let toDoContainer = document.getElementById('toDo');
-    let progressContainer = document.getElementById('progress');
-    let feedbackContainer = document.getElementById('feedback');
-    let doneContainer = document.getElementById('done');
-
-    
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
     removeExistingNoResultsMessages();
+    const matches = { triage: false, toDo: false, progress: false,
+        feedback: false, done: false };
+    document.querySelectorAll('.card').forEach(card => filterTaskCard(card, searchInput, matches));
+    addSearchEmptyMessages(matches);
+}
 
-    
-    let matchesFound = {
-        triage: false,
-        toDo: false,
-        progress: false,
-        feedback: false,
-        done: false
-    };
+/** Shows a task card when title or description contains the search term. */
+function filterTaskCard(card, searchInput, matches) {
+    const title = card.querySelector('.cardTitle').textContent.toLowerCase();
+    const description = card.querySelector('.cardContext').textContent.toLowerCase();
+    const section = card.closest('#triage, #toDo, #progress, #feedback, #done');
+    const isMatch = title.includes(searchInput) || description.includes(searchInput);
+    card.style.display = isMatch ? 'block' : 'none';
+    if (isMatch && section) matches[section.id] = true;
+}
 
-    taskCards.forEach(card => {
-        let taskTitle = card.querySelector('.cardTitle').textContent.toLowerCase();
-        let taskDescription = card.querySelector('.cardContext').textContent.toLowerCase();
-
-        
-        let parentSection = card.closest('#triage, #toDo, #progress, #feedback, #done');
-
-        if (taskTitle.includes(searchInput) || taskDescription.includes(searchInput)) {
-            card.style.display = 'block'; 
-
-            
-            if (parentSection) {
-                if (parentSection.id === 'triage') matchesFound.triage = true;
-                if (parentSection.id === 'toDo') matchesFound.toDo = true;
-                if (parentSection.id === 'progress') matchesFound.progress = true;
-                if (parentSection.id === 'feedback') matchesFound.feedback = true;
-                if (parentSection.id === 'done') matchesFound.done = true;
-            }
-        } else {
-            card.style.display = 'none'; 
-        }
+/** Adds a no-results message to every board column without a search match. */
+function addSearchEmptyMessages(matches) {
+    Object.entries(matches).forEach(([id, found]) => {
+        if (!found) addNoResultsMessage(document.getElementById(id));
     });
-
-    
-    if (!matchesFound.triage) addNoResultsMessage(triageContainer);
-    if (!matchesFound.toDo) addNoResultsMessage(toDoContainer);
-    if (!matchesFound.progress) addNoResultsMessage(progressContainer);
-    if (!matchesFound.feedback) addNoResultsMessage(feedbackContainer);
-    if (!matchesFound.done) addNoResultsMessage(doneContainer);
 }
 
 /**

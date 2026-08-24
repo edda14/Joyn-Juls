@@ -2,8 +2,8 @@ let isChecked = false;
 let guest = { name: "Guest", email: null, role: "guest" };
 
 
+/** Initializes login-page data and input behavior. */
 async function logInInit() {
-  joinImgAnimation();
   await loadDataContacts();
   getSavedUser();
   addHoverForLogin();
@@ -11,12 +11,14 @@ async function logInInit() {
 }
 
 
+/** Opens the sign-up page. */
 function redirectToSignup() {
   window.location.href = "./signUp.html";
 }
 
 
 
+/** Starts the legacy Join-logo transition when requested. */
 function joinImgAnimation() {
   let background = document.querySelector(".animatedImageContainer");
   let animatedImage = document.querySelector(".animatedImage");
@@ -30,6 +32,7 @@ function joinImgAnimation() {
 }  
 
 
+/** Applies the responsive logo animation classes. */
 function startAnimation(background, animatedImage, joinIcon, responsiveImg, mediaQuery) {
   if (mediaQuery.matches) {
     background.classList.add("fadeOut");
@@ -45,6 +48,7 @@ function startAnimation(background, animatedImage, joinIcon, responsiveImg, medi
     }, 500);
 }
 
+/** Hides the completed logo-animation elements. */
 function hideElements(background, animatedImage, joinIcon, responsiveImg, mediaQuery) {
   if (mediaQuery.matches)  {
     responsiveImg.classList.add("hideElements");
@@ -57,6 +61,7 @@ function hideElements(background, animatedImage, joinIcon, responsiveImg, mediaQ
 }
 
 
+/** Updates the enabled visual state of the login button. */
 function checkInputs() {
   let logInButton = document.getElementById("logIn");
   let emailInput = document.getElementById("logInEmailInput");
@@ -70,6 +75,7 @@ function checkInputs() {
 }
 
 
+/** Connects login inputs to button-state validation. */
 function addHoverForLogin() {
   let emailInput = document.getElementById("logInEmailInput");
   let passwordInput = document.getElementById("logInPasswordInput");
@@ -78,65 +84,70 @@ function addHoverForLogin() {
 }
 
 
+/** Authenticates the submitted member login. */
 async function findUser(event) {
   event.preventDefault();
-
-  let emailInput = document.getElementById("logInEmailInput");
-  let passwordInput = document.getElementById("logInPasswordInput");
-  let email = emailInput.value;
-  let password = passwordInput.value;
-  let rememberMe = isChecked;
+  const emailInput = document.getElementById("logInEmailInput");
+  const passwordInput = document.getElementById("logInPasswordInput");
   resetInputBorders(emailInput, passwordInput);
-
   try {
-    const firebaseUser = await window.firebaseAuth.loginWithEmail(
-      email.trim().toLowerCase(),
-      password,
-      rememberMe
-    );
-    const user = {
-      uid: firebaseUser.uid,
-      name: firebaseUser.displayName || email.split("@")[0],
-      email: firebaseUser.email,
-    };
-    sessionStorage.setItem('currentUser', JSON.stringify(user));
-    await addNewContact(user.name, user.email);
-    redirectToSummary();
+    const firebaseUser = await authenticateLogin(emailInput.value, passwordInput.value);
+    await completeLogin(firebaseUser, emailInput.value);
   } catch (error) {
     handleInvalidUser(emailInput, passwordInput);
     console.error("Firebase login failed:", error.code);
   }
 }
 
-async function addNewContact(name, email) {
-  const existingContact = contacts.find(
-    contact => contact.mail && contact.mail.toLowerCase() === email.toLowerCase()
-  );
-  if (existingContact) return;
-
-  const color = getRandomProfileColor();
-  const initial = extractInitials(name); // Annahme: extractInitials ist bereits implementiert
-  const newContact = {
-      name: name,
-      mail: email,
-      phone: '', // Da wir keine Telefonnummer während der Registrierung erhalten
-      profileColor: color,
-      initials: initial,
-  };
-
-  await postContact("/contacts", newContact);
+/** Authenticates the current login form values with Firebase. */
+function authenticateLogin(email, password) {
+  return window.firebaseAuth.loginWithEmail(email.trim().toLowerCase(), password, isChecked);
 }
 
+/** Stores the authenticated session and opens the board summary. */
+async function completeLogin(firebaseUser, enteredEmail) {
+  const user = { uid: firebaseUser.uid,
+    name: firebaseUser.displayName || enteredEmail.split('@')[0],
+    email: firebaseUser.email };
+  sessionStorage.setItem('currentUser', JSON.stringify(user));
+  await addNewContact(user);
+  redirectToSummary();
+}
+
+/** Creates a matching contact for a newly authenticated member. */
+async function addNewContact(user) {
+  const email = normalizeEmail(user.email);
+  const existingContact = contacts.find(contact => normalizeEmail(contact.mail) === email);
+  if (existingContact) return;
+  const color = getRandomProfileColor();
+  const newContact = {
+      name: user.name,
+      mail: email,
+      phone: '',
+      profileColor: color,
+      initials: extractInitials(user.name),
+  };
+  await changeContact(`/contacts/${user.uid}`, newContact);
+}
+
+/** Returns a consistently comparable email address. */
+function normalizeEmail(email = '') {
+  return email.trim().toLowerCase();
+}
+
+/** Resets login input border feedback. */
 function resetInputBorders(emailInput, passwordInput) {
   emailInput.style.borderColor = "";
   passwordInput.style.borderColor = "";
 }
 
 
+/** Opens the summary page. */
 function redirectToSummary() {
   window.location.href = "./summary.html";
 }
 
+/** Creates and stores an anonymous Firebase guest session. */
 async function guestLogin() {
   let form = document.querySelector('form');
   try {
@@ -155,6 +166,7 @@ async function guestLogin() {
 }
 
 
+/** Displays invalid-login feedback. */
 function handleInvalidUser(emailInput, passwordInput) {
   let passwordAlert = document.querySelector(".passwordAlert");
   let rememberMe = document.querySelector(".rememberMe");
@@ -172,6 +184,7 @@ function handleInvalidUser(emailInput, passwordInput) {
 }
 
 
+/** Toggles password visibility from the login field icon. */
 function handlePaswordVisibility() {
   let passwordInput = document.getElementById("logInPasswordInput");
 
@@ -193,6 +206,7 @@ function handlePaswordVisibility() {
 }
 
 
+/** Restores the password field's idle icon state. */
 function handlepaswordImg(element) {
   if (element.classList.contains("passwordInputImg")) {
     element.classList.remove("passwordInputImg");
@@ -212,6 +226,7 @@ function handlepaswordImg(element) {
 }
 
 
+/** Applies the focused password field style. */
 function handlepaswordStyle(element) {
   if (element.classList.contains("passwordInputImg")) {
     element.classList.remove("passwordInputImg");
@@ -226,6 +241,7 @@ function handlepaswordStyle(element) {
 }
 
 
+/** Toggles the remember-me checkbox state. */
 function toggleCheckbox(img) {
   let checkmark = document.getElementById("checkmark");
   checkmark.classList.toggle("dNone");
@@ -240,6 +256,7 @@ function toggleCheckbox(img) {
 }
 
 
+/** Relies on Firebase Auth to restore any saved session. */
 function getSavedUser() {
   // Firebase Auth manages persistent sessions without storing passwords in web storage.
 }

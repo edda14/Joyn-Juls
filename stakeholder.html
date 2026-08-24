@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Send an email to create an AI-assisted ticket in Join." />
+    <link rel="icon" href="./assets/img/joinDark.png" type="image/x-icon" />
+    <link rel="stylesheet" href="./css/landing.css" />
+    <title>Join – Create a request</title>
+  </head>
+  <body class="stakeholderPage">
+    <header class="stakeholderHeader">
+      <a href="./index.html" class="brandLink" aria-label="Back to welcome page">
+        <img src="./assets/img/joinDark.png" alt="Join" />
+      </a>
+      <a href="./index.html" class="backLink" aria-label="Back to welcome page">
+        <img src="./assets/img/arrow-left-line.svg" alt="" aria-hidden="true" />
+      </a>
+      <p id="requestCounter" class="requestCounter" aria-live="polite" aria-busy="true"><strong>0 of 10</strong> requests used today</p>
+    </header>
+    <main class="stakeholderMain">
+      <section class="stakeholderContent" aria-labelledby="stakeholder-title">
+        <div class="stakeholderTitle">
+          <h1 id="stakeholder-title">Welcome</h1>
+          <a href="./index.html" class="backLink mobileBackLink" aria-label="Back to welcome page">
+            <img src="./assets/img/arrow-left-line.svg" alt="" aria-hidden="true" />
+          </a>
+        </div>
+        <p class="requestCounter mobileRequestCounter" aria-live="polite" aria-busy="true"><strong>0 of 10</strong> requests used today</p>
+        <div class="stakeholderLayout">
+          <div class="stakeholderCopy">
+            <p id="limitNotice" class="limitNotice" hidden>The daily 10-request limit has been reached!</p>
+            <h2 id="stakeholderLead">Easily create a ticket by sending an email — no extra steps needed.</h2>
+            <div id="normalCopy">
+              <p>On this platform, you can submit your feature requests via email. Our AI system will automatically generate a ticket with a deadline and priority level.</p>
+              <p>A total of 10 requests can be created per day. After this limit, emails can still be sent, but they will be manually reviewed by our team instead of generating AI tickets.</p>
+            </div>
+            <p id="limitCopy" hidden>Need more? No worries — you can still send emails, but our team will review them manually instead of using AI to create tickets.</p>
+            <a id="emailRequestButton" class="landingButton primaryButton emailButton" href="mailto:juliaschaeffer96+join@gmail.com?subject=Feature%20request%20for%20Join&body=Hello%20Join%20team%2C%0A%0APlease%20describe%20your%20request%2C%20desired%20deadline%20and%20urgency%20here%3A%0A%0A">Create request</a>
+          </div>
+          <div class="requestImageContainer" aria-hidden="true">
+            <img id="normalIllustration" class="requestImage" src="./assets/img/Rectangle11.svg" alt="" />
+            <img id="limitIllustration" class="requestImage" src="./assets/img/Artboard60%203.svg" alt="" hidden />
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="landingFooter">
+      <a href="./privacyPolicyNoLogin.html">Privacy Policy</a>
+      <a href="./legalNoticeNoLogin.html">Legal notice</a>
+    </footer>
+    <script src="./js/landing.js"></script>
+  </body>
+</html>

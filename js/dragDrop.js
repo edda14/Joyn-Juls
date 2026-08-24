@@ -23,6 +23,65 @@ let isDragging = false;
  */
 let dragClone = null;
 
+const STATUS_CHANGE_WEBHOOK_URL =
+    'https://julsino.app.n8n.cloud/webhook/join-status-change';
+
+/**
+ * Sends a successful task status change to the n8n notification workflow.
+ * URL-encoded data avoids a CORS preflight for this public demo webhook.
+ * Notification failures are logged without reverting the Firebase update.
+ * @param {Object} task - The task whose status changed.
+ * @param {string} oldStatus - Status before the move.
+ * @param {string} newStatus - Status after the move.
+ * @returns {Promise<void>}
+ */
+async function notifyTaskStatusChange(task, oldStatus, newStatus) {
+    const payload = buildStatusChangePayload(task, oldStatus, newStatus);
+    try {
+        await sendStatusChangePayload(payload);
+    } catch (error) {
+        console.error('Status notification could not be sent:', error);
+    }
+}
+
+/** Builds URL-encoded notification data for n8n. */
+function buildStatusChangePayload(task, oldStatus, newStatus) {
+    const creator = task.creator || {};
+    return new URLSearchParams({
+        taskId: task.id || '',
+        title: task.title || 'Join-Ticket',
+        oldStatus,
+        newStatus,
+        creatorName: creator.name || 'Stakeholder',
+        creatorEmail: creator.email || '',
+        creatorType: creator.type || 'internal',
+    });
+}
+
+/** Sends encoded status data to the public n8n webhook. */
+function sendStatusChangePayload(payload) {
+    return fetch(STATUS_CHANGE_WEBHOOK_URL, {
+        method: 'POST', mode: 'no-cors', keepalive: true,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+        body: payload.toString(),
+    });
+}
+
+/**
+ * Persists a changed status and then triggers the creator notification.
+ * @param {Object} task - Task to update.
+ * @param {string} newStatus - Destination column ID.
+ * @returns {Promise<void>}
+ */
+async function updateTaskStatus(task, newStatus) {
+    const oldStatus = task.status;
+    if (oldStatus === newStatus) return;
+
+    await changeTask(`/task/${task.id}/status`, newStatus);
+    task.status = newStatus;
+    await notifyTaskStatusChange(task, oldStatus, newStatus);
+}
+
 
 /**
  * Initializes event listeners for scrolling containers once the DOM is loaded.
@@ -96,33 +155,9 @@ function allowDrop(event) {
  * Re-render tasks to reflect changes
  */
 async function drop(event) {
-    event.preventDefault(); // Prevent default drop behavior
-
-    const draggedTask = tasks.find(taskItem => taskItem.id === currentDraggedElement);
-    if (!canCurrentUserModifyTask(draggedTask)) return;
-
-    let dropZone = event.target.closest('.taskContent'); // Identify the drop zone
-    if (!dropZone) return;
-
-    let taskElement = document.querySelector(`[data-id="${currentDraggedElement}"]`);
-    if (!taskElement) {
-        console.error('Task element not found with id:', currentDraggedElement);
-        return;
-    }
-
-    dropZone.appendChild(taskElement);
-
-    let newStatus = dropZone.id;
-    let task = tasks.find(t => t.id === currentDraggedElement);
-
-    if (task) {
-        task.status = newStatus;
-        await changeTask(`/task/${currentDraggedElement}/status`, task.status);
-        await loadDataTask();
-        renderTasks();
-    } else {
-        console.error('Task data not found for id:', currentDraggedElement);
-    }
+    event.preventDefault();
+    const dropZone = event.target.closest('.taskContent');
+    await moveDraggedTask(dropZone);
 }
 
 /**
@@ -134,40 +169,21 @@ async function drop(event) {
  * Re-render tasks to reflect changes
  */
 async function dropMobile(event) {
+    const touch = event.changedTouches[0];
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    await moveDraggedTask(target?.closest('.taskContent'));
+}
 
-    const draggedTask = tasks.find(taskItem => taskItem.id === currentDraggedElement);
-    if (!canCurrentUserModifyTask(draggedTask)) return;
-
-
-    let touch = event.changedTouches[0];
-    let dropZone = document.elementFromPoint(touch.clientX, touch.clientY).closest('.taskContent');
-
-    if (!dropZone) {
-        console.error('Drop zone not found');
-        return;
-    }
-
-    let taskElement = document.querySelector(`[data-id="${currentDraggedElement}"]`);
-    if (!taskElement) {
-        console.error('Task element not found with id:', currentDraggedElement);
-        return;
-    }
-
-
+/** Moves the currently dragged task into a board column. */
+async function moveDraggedTask(dropZone) {
+    const task = tasks.find(item => item.id === currentDraggedElement);
+    if (!canCurrentUserModifyTask(task) || !dropZone) return;
+    const taskElement = document.querySelector(`[data-id="${currentDraggedElement}"]`);
+    if (!taskElement) return console.error('Task element not found:', currentDraggedElement);
     dropZone.appendChild(taskElement);
-
-
-    let newStatus = dropZone.id;
-    let task = tasks.find(t => t.id === currentDraggedElement);
-
-    if (task) {
-        task.status = newStatus;
-        await changeTask(`/task/${currentDraggedElement}/status`, task.status);
-        await loadDataTask();
-        renderTasks();
-    } else {
-        console.error('Task data not found for id:', currentDraggedElement);
-    }
+    await updateTaskStatus(task, dropZone.id);
+    await loadDataTask();
+    renderTasks();
 }
 
 /**

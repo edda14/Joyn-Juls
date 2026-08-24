@@ -1,57 +1,62 @@
 let isChecked = false;
 
-async function initSignUp() {
-  // Firebase Authentication is initialized by firebase.js.
-}
-
+/** Returns the registration confirmation backdrop. */
 function getSignUpPopupContainer() {
   let signUpPopupContainer = document.getElementById('signUpPopupContainer');
   return signUpPopupContainer;
 }
 
+/** Returns the registration confirmation card. */
 function getSignUpPopup() {
   let signUpPopup = document.getElementById('signUpPopup');
   return signUpPopup;
 }
 
 
-  async function addUser(event) {
+/** Validates and submits a new Firebase member registration. */
+async function addUser(event) {
   event.preventDefault();
-
-  let name = document.getElementById("signUpNameInput");
-  let email = document.getElementById("signUpEmailInput");
-  let password = document.getElementById("signUpPasswordInput");
-  let confirmPassword = document.getElementById("confirmPasswordInput");
-
+  const { name, email, password, confirmPassword } = getSignUpInputs();
   resetInputBorders(name, email, password, confirmPassword);
-
   if (!isValidInput(name, email, password, confirmPassword)) {
     handleInvalidInput(name, email, password, confirmPassword);
     return false;
   }
-
-  if (!isChecked) {
-    document.querySelector(".acceptCheckbox").classList.add("redLine");
-    document.querySelector(".signUp").style.marginTop = "0px";
-    return false;
-  }
-
+  if (!isChecked) return rejectMissingPrivacyConsent();
   try {
-    const firebaseUser = await window.firebaseAuth.registerWithEmail(
-      name.value.trim(),
-      email.value.trim().toLowerCase(),
-      password.value
-    );
-    await saveUserProfile(firebaseUser.uid, name.value.trim(), email.value.trim().toLowerCase());
-    showSignUpPopup();
-    setTimeout(hideSignUpPopupAndRedirect, 3000);
+    await registerUserInputs(name, email, password);
   } catch (error) {
     showRegistrationError(error, email, password, confirmPassword);
   }
-
   return false;
 }
 
+/** Returns all required sign-up input elements. */
+function getSignUpInputs() {
+  return { name: document.getElementById('signUpNameInput'),
+    email: document.getElementById('signUpEmailInput'),
+    password: document.getElementById('signUpPasswordInput'),
+    confirmPassword: document.getElementById('confirmPasswordInput') };
+}
+
+/** Displays missing privacy-consent feedback and cancels submission. */
+function rejectMissingPrivacyConsent() {
+  document.querySelector('.acceptCheckbox').classList.add('redLine');
+  document.querySelector('.signUp').style.marginTop = '0px';
+  return false;
+}
+
+/** Registers the user, stores their profile, and shows confirmation. */
+async function registerUserInputs(name, email, password) {
+  const cleanName = name.value.trim();
+  const cleanEmail = email.value.trim().toLowerCase();
+  const user = await window.firebaseAuth.registerWithEmail(cleanName, cleanEmail, password.value);
+  await saveUserProfile(user.uid, cleanName, cleanEmail);
+  showSignUpPopup();
+  setTimeout(hideSignUpPopupAndRedirect, 3000);
+}
+
+/** Clears previous sign-up validation feedback. */
 function resetInputBorders(name, email, password, confirmPassword) {
   name.style.borderColor = "";
   email.style.borderColor = "";
@@ -61,6 +66,7 @@ function resetInputBorders(name, email, password, confirmPassword) {
   document.querySelector(".acceptCheckbox").style.marginTop = "14px";
 }
 
+/** Checks all required sign-up values and password rules. */
 function isValidInput(name, email, password, confirmPassword) {
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d\s]).{8,}$/;
   return (
@@ -72,6 +78,7 @@ function isValidInput(name, email, password, confirmPassword) {
 }
 
 
+/** Marks invalid sign-up inputs. */
 function handleInvalidInput(name, email, password, confirmPassword) {
   if (name.value === "") name.style.borderColor = "#FF8190";
   if (email.value === "") email.style.borderColor = "#FF8190";
@@ -86,10 +93,12 @@ function handleInvalidInput(name, email, password, confirmPassword) {
   }
 }
 
+/** Stores a member profile under its Firebase UID. */
 async function saveUserProfile(uid, name, email) {
   await putUserData(`/users/${uid}`, { name, email });
 }
 
+/** Displays a readable Firebase registration error. */
 function showRegistrationError(error, email, password, confirmPassword) {
   const alert = document.querySelector(".passwordAlert");
   const messages = {
@@ -105,6 +114,7 @@ function showRegistrationError(error, email, password, confirmPassword) {
   console.error("Firebase sign-up failed:", error.code);
 }
 
+/** Shows the successful-registration popup. */
 function showSignUpPopup() {
   let signUpPopupContainer = getSignUpPopupContainer();
   let signUpPopup = getSignUpPopup();
@@ -114,6 +124,7 @@ function showSignUpPopup() {
 }
 
 
+/** Hides the successful-registration popup. */
 function hideSignUpPopup() {
   let signUpPopupContainer = getSignUpPopupContainer();
   let signUpPopup = getSignUpPopup();
@@ -123,17 +134,20 @@ function hideSignUpPopup() {
 } 
 
 
+/** Hides confirmation and returns to login. */
 function hideSignUpPopupAndRedirect() {
   hideSignUpPopup();
   redirectToLogIn();
 }
 
 
+/** Opens the login page. */
 function redirectToLogIn() {
-  window.location.href = "./index.html";
+  window.location.href = "./login.html";
 }
 
 
+/** Toggles privacy-policy acceptance. */
 function toggleCheckbox(img) {
   let checkmark = document.getElementById("checkmark");
   let signUpButton = document.querySelector(".signUp");
@@ -153,6 +167,7 @@ function toggleCheckbox(img) {
 }
 
 
+/** Capitalizes the first character of a name field. */
 function toUpperCase(inputName) {
     let name = inputName.value.trim();
 
@@ -165,6 +180,7 @@ function toUpperCase(inputName) {
 }
 
 
+/** Toggles visibility for the primary password field. */
 function handlePaswordVisibility() {
   let passwordInput = document.getElementById("signUpPasswordInput");
 
@@ -186,6 +202,7 @@ function handlePaswordVisibility() {
 }
 
 
+/** Restores the primary password field's idle icon. */
 function handlepaswordImg(element) {
   if (element.classList.contains("passwordInputImg")) {
     element.classList.remove("passwordInputImg");
@@ -205,6 +222,7 @@ function handlepaswordImg(element) {
 }
 
 
+/** Applies focus styling to the primary password field. */
 function handlepaswordStyle(element) {
   if (element.classList.contains("passwordInputImg")) {
     element.classList.remove("passwordInputImg");
@@ -219,6 +237,7 @@ function handlepaswordStyle(element) {
 }
 
 
+/** Toggles visibility for the confirmation password field. */
 function handleConfirmPaswordVisibility() {
   let confirmPasswordInput = document.getElementById("confirmPasswordInput");
 
@@ -240,6 +259,7 @@ function handleConfirmPaswordVisibility() {
 }
 
 
+/** Restores the confirmation password field's idle icon. */
 function handleConfirmPaswordImg(element) {
   if (element.classList.contains("passwordInputImg")) {
     element.classList.remove("passwordInputImg");
@@ -259,6 +279,7 @@ function handleConfirmPaswordImg(element) {
 }
 
 
+/** Applies focus styling to the confirmation password field. */
 function handleConfirmPaswordStyle(element) {
   if (element.classList.contains("passwordInputImg")) {
     element.classList.remove("passwordInputImg");

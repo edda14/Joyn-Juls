@@ -26,10 +26,12 @@ function getRandomProfileColor() {
     return colorPool[Math.floor(Math.random() * colorPool.length)];
 }
 
+/** Removes the current-user suffix from a contact name. */
 function stripYouSuffix(name = '') {
     return name.replace(/\s*\(You\)\s*$/, '').trim();
 }
 
+/** Checks whether a contact represents the signed-in user. */
 function isCurrentUserContact(contact) {
     const signedInUser = JSON.parse(sessionStorage.getItem('currentUser'));
     return Boolean(
@@ -39,6 +41,7 @@ function isCurrentUserContact(contact) {
     );
 }
 
+/** Returns the contact name used in the interface. */
 function getContactDisplayName(contact) {
     const name = stripYouSuffix(contact?.name || '');
     return isCurrentUserContact(contact) ? `${name} (You)` : name;
@@ -46,6 +49,7 @@ function getContactDisplayName(contact) {
 
 let alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 
+/** Initializes the contacts page. */
 async function contactInit() {
     await includeHTML();
     showInitials();
@@ -54,75 +58,88 @@ async function contactInit() {
     openContactFromUrl();
 }
 
+/** Renders the complete contact list. */
 function renderContacts() {
     createContactList();
 }
 
+/** Builds the alphabetically grouped contact list. */
 function createContactList(newContactIndex = null) {
     const contactList = document.getElementById('contact-list');
     contactList.innerHTML = '';
-    const seenContacts = new Set(); // Set zum Nachverfolgen der bereits hinzugefügten Kontakte
-
-    for (let j = 0; j < alphabet.length; j++) {
-        const letter = alphabet[j];
-        let letterAdded = false; // Flag, um zu überprüfen, ob der Buchstabe hinzugefügt wurde
-
-        for (let i = 0; i < contacts.length; i++) {
-            const contact = contacts[i];
-            const initials = contact.initials;
-            const firstLetter = initials.charAt(0).toUpperCase();
-
-            const displayName = getContactDisplayName(contact);
-            if (firstLetter === letter && !seenContacts.has(displayName)) {
-                if (!letterAdded) {
-                    const letterHeading = document.createElement('div');
-                    letterHeading.textContent = firstLetter;
-                    letterHeading.classList.add('letter-heading');
-                    contactList.appendChild(letterHeading);
-                    letterAdded = true;
-                }
-
-                const contactItem = document.createElement('div');
-                contactItem.classList.add('contact');
-                contactItem.dataset.contactId = contact.id;
-                if (i === newContactIndex) {
-                    contactItem.classList.add('active'); // Markiere den neuen Kontakt als aktiv
-                }
-                const profileColor = contact['profileColor'];
-                const profilePicture = document.createElement('div');
-                profilePicture.classList.add('profile-picture');
-                profilePicture.style.backgroundColor = profileColor;
-                profilePicture.textContent = initials;
-                contactItem.appendChild(profilePicture);
-
-                const contactDetails = document.createElement('div');
-                contactDetails.classList.add('oneContact');
-                contactDetails.innerHTML = `
-                      <h2>${displayName}</h2>
-                      <p class="blueColor">${contact.mail}</p>
-                  `;
-                contactItem.appendChild(contactDetails);
-                contactList.appendChild(contactItem);
-
-                // Füge dem Kontakt und den Kontaktinformationen einen Click-Event-Listener hinzu
-                contactItem.onclick = function () {
-                    // Entferne die 'active' Klasse von allen Kontakten
-                    const allContacts = document.querySelectorAll('.contact');
-                    allContacts.forEach(c => c.classList.remove('active'));
-
-                    // Füge die 'active' Klasse zum geklickten Kontakt hinzu
-                    contactItem.classList.add('active');
-
-                    // Rufe die Kontaktinformationen mit dem aktuellen Kontakt ab
-                    contactClickHandler(i);
-                };
-
-                seenContacts.add(displayName); // Kontakt als gesehen markieren
-            }
-        }
-    }
+    const seenContacts = new Set();
+    alphabet.forEach(letter => renderContactGroup(contactList, letter, seenContacts, newContactIndex));
 }
 
+/** Renders all unique contacts belonging to one alphabet group. */
+function renderContactGroup(contactList, letter, seenContacts, newContactIndex) {
+    let headingAdded = false;
+    contacts.forEach((contact, index) => {
+        const displayName = getContactDisplayName(contact);
+        const contactKey = getContactKey(contact, displayName);
+        if (!contactMatchesGroup(contact, letter, contactKey, seenContacts)) return;
+        if (!headingAdded) headingAdded = appendContactHeading(contactList, letter);
+        appendContactItem(contactList, contact, index, displayName, index === newContactIndex);
+        seenContacts.add(contactKey);
+    });
+}
+
+/** Checks whether a contact belongs in the requested alphabet group. */
+function contactMatchesGroup(contact, letter, contactKey, seenContacts) {
+    return contact.initials.charAt(0).toUpperCase() === letter && !seenContacts.has(contactKey);
+}
+
+/** Returns the stable identity used to hide legacy contact duplicates. */
+function getContactKey(contact, displayName) {
+    return contact?.mail?.trim().toLowerCase() || displayName.trim().toLowerCase();
+}
+
+/** Appends an alphabet heading and reports that it was added. */
+function appendContactHeading(contactList, letter) {
+    const heading = document.createElement('div');
+    heading.textContent = letter;
+    heading.classList.add('letter-heading');
+    contactList.appendChild(heading);
+    return true;
+}
+
+/** Builds and appends one selectable contact row. */
+function appendContactItem(contactList, contact, index, displayName, isNewContact) {
+    const item = document.createElement('div');
+    item.classList.add('contact');
+    item.dataset.contactId = contact.id;
+    if (isNewContact) item.classList.add('active');
+    item.appendChild(createContactAvatar(contact));
+    item.appendChild(createContactDetails(contact, displayName));
+    item.onclick = () => selectContactItem(item, index);
+    contactList.appendChild(item);
+}
+
+/** Creates the avatar element for a contact row. */
+function createContactAvatar(contact) {
+    const avatar = document.createElement('div');
+    avatar.classList.add('profile-picture');
+    avatar.style.backgroundColor = contact.profileColor;
+    avatar.textContent = contact.initials;
+    return avatar;
+}
+
+/** Creates the name and email element for a contact row. */
+function createContactDetails(contact, displayName) {
+    const details = document.createElement('div');
+    details.classList.add('oneContact');
+    details.innerHTML = `<h2>${displayName}</h2><p class="blueColor">${contact.mail}</p>`;
+    return details;
+}
+
+/** Activates a contact row and opens its details. */
+function selectContactItem(item, index) {
+    document.querySelectorAll('.contact').forEach(contact => contact.classList.remove('active'));
+    item.classList.add('active');
+    contactClickHandler(index);
+}
+
+/** Opens the contact specified in the page URL, if present. */
 function openContactFromUrl() {
     const email = new URLSearchParams(window.location.search).get('email');
     if (!email) return;
@@ -140,6 +157,7 @@ function openContactFromUrl() {
 }
 
 // Hilfsfunktion zum Extrahieren des ersten Buchstabens des Vornamens und Nachnamens
+/** Extracts uppercase initials from a full name. */
 function extractInitials(name) {
     const names = name.split(' ');
     let initial = '';
@@ -149,37 +167,63 @@ function extractInitials(name) {
     return initial;
 }
 
+/** Validates and saves the add-contact form. */
 async function getNewContact() {
-    let name = document.getElementById('fullName');
-    let email = document.getElementById('emailAdress');
-    let phone = document.getElementById('phoneNumber');
-    if (name.value == '' || email.value == '' || phone.value == '') {
-        document.getElementById('addNewContactAlert').innerHTML = '';
-        document.getElementById('addNewContactAlert').innerHTML = '<p>the fields must be filled</p>';
-    } else {
-        const color = getRandomProfileColor();
-        const initialien = extractInitials(name.value);
-        const newContact = {
-            mail: email.value,
-            name: name.value,
-            initials: initialien,
-            phone: phone.value,
-            profileColor: color,
-        };
-        await postContact("/contacts", newContact);
-        await loadDataContacts();
-        const newContactIndex = contacts.length - 1;
-        createContactList(newContactIndex);
-        contactClickHandler(newContactIndex);
-        name.value = '';
-        email.value = '';
-        phone.value = '';
-        cancelAddContact();
-        slideSuccessfullyContact();
-    }
+    const inputs = getNewContactInputs();
+    if (!contactInputsAreFilled(inputs)) return showContactInputAlert();
+    await saveNewContact(inputs);
+    clearContactInputs(inputs);
+    cancelAddContact();
+    slideSuccessfullyContact();
+}
+
+/** Returns the add-contact input elements. */
+function getNewContactInputs() {
+    return {
+        name: document.getElementById('fullName'),
+        email: document.getElementById('emailAdress'),
+        phone: document.getElementById('phoneNumber'),
+    };
+}
+
+/** Checks that all required contact fields contain text. */
+function contactInputsAreFilled(inputs) {
+    return Boolean(inputs.name.value && inputs.email.value && inputs.phone.value);
+}
+
+/** Displays the missing-contact-data message. */
+function showContactInputAlert() {
+    document.getElementById('addNewContactAlert').innerHTML = '<p>the fields must be filled</p>';
+}
+
+/** Saves a new contact and refreshes the selected contact view. */
+async function saveNewContact(inputs) {
+    const contact = buildNewContact(inputs);
+    await postContact('/contacts', contact);
+    await loadDataContacts();
+    const index = contacts.length - 1;
+    createContactList(index);
+    contactClickHandler(index);
+}
+
+/** Builds the storage object for a new contact. */
+function buildNewContact(inputs) {
+    return {
+        mail: inputs.email.value,
+        name: inputs.name.value,
+        initials: extractInitials(inputs.name.value),
+        phone: inputs.phone.value,
+        profileColor: getRandomProfileColor(),
+    };
+}
+
+/** Clears all add-contact fields. */
+function clearContactInputs(inputs) {
+    Object.values(inputs).forEach(input => { input.value = ''; });
 }
 
 // Funktion, die beim Klicken auf den Kontakt oder Kontaktinformationen aufgerufen wird
+/** Opens a selected contact in the appropriate layout. */
 function contactClickHandler(i) {
     let contact = contacts[i];
     if (window.innerWidth < 1300) {
@@ -190,6 +234,7 @@ function contactClickHandler(i) {
     }
 }
 
+/** Opens contact details in the responsive layout. */
 function editContactResponsive(contact, i) {
     document.getElementById('contactListContent').classList.add('d-none');
     document.getElementById('contactContent').classList.remove('d-noneResp');
@@ -199,6 +244,7 @@ function editContactResponsive(contact, i) {
     contactSection.innerHTML = getResponsiveContactTemplate(contact, i);
 }
 
+/** Slides the responsive edit actions into view. */
 function showEditDiv(i) {
     let editDivResp = document.getElementById('editDivResp');
     setTimeout(() => {
@@ -207,6 +253,7 @@ function showEditDiv(i) {
 
 }
 
+/** Slides the responsive edit actions out of view. */
 function closeEditDiv() {
     let editDivResp = document.getElementById('editDivResp');
     setTimeout(() => {
@@ -214,6 +261,7 @@ function closeEditDiv() {
     }, 10);
 }
 
+/** Returns from responsive contact details to the contact list. */
 function closeEditResponsive() {
      // Entferne die 'active' Klasse von allen Kontakten
      const allContacts = document.querySelectorAll('.contact');
@@ -224,6 +272,7 @@ function closeEditResponsive() {
     document.getElementById('addContactResp').classList.remove('d-noneResp');
 }
 
+/** Displays the contact-created confirmation briefly. */
 function slideSuccessfullyContact() {
     let container = document.getElementById('successfullyContainer');
     let successfully = document.getElementById('successfully');
@@ -235,59 +284,63 @@ function slideSuccessfullyContact() {
     }, 1000);
 }
 
+/** Opens a contact in the edit panel. */
 async function showEditContact(i) {
     let contact = contacts[i];
-    let name = contact.name;
     isItYou = isCurrentUserContact(contact);
-    let displayName = stripYouSuffix(name);
+    openEditContactPanel();
+    populateEditContactPanel(contact, i);
+}
 
-    const color = contact['profileColor'];
-
+/** Makes the edit-contact panel visible. */
+function openEditContactPanel() {
     document.getElementById('editContactSecondSection').innerHTML = '';
     document.getElementById('blurBackgroundEdit').classList.remove('d-none');
     editContact.style.display = "flex";
-    setTimeout(() => {
-        editContact.style.transform = "translateX(0)";
-    }, 10);
-    document.getElementById('editContactSecondSection').innerHTML = editContactHTML(i);
+    setTimeout(() => { editContact.style.transform = "translateX(0)"; }, 10);
+}
+
+/** Populates the edit-contact panel with stored values. */
+function populateEditContactPanel(contact, index) {
+    const displayName = stripYouSuffix(contact.name);
+    document.getElementById('editContactSecondSection').innerHTML = editContactHTML(index);
     document.getElementById('editName').value = displayName;
     document.getElementById('editEmail').value = contact.mail;
     document.getElementById('editPhone').value = contact.phone;
-    document.getElementById('initialsEditContact').style.backgroundColor = color;
+    document.getElementById('initialsEditContact').style.backgroundColor = contact.profileColor;
     document.getElementById('initialsText').innerHTML = contact.initials;
-    // closeEditResponsive();
 }
 
+/** Returns the edit form markup for one contact. */
 function editContactHTML(i) {
     let contact = contacts[i];
     return getEditContactTemplate(contact, i);
 }
 
+/** Saves values edited in the contact form. */
 async function editContactToArray(i) {
-    let contact = contacts[i];
-    let name = document.getElementById('editName');
-    let email = document.getElementById('editEmail');
-    let phone = document.getElementById('editPhone');
-    const initial = extractInitials(name.value);
-
-    let myName = stripYouSuffix(name.value);
-
-    const newContact = {
-        "name": myName,
-        "mail": email.value,
-        "phone": phone.value,
-        "profileColor": contact.profileColor,
-        "initials": initial
-    };
-
-    await postContact("/contacts", newContact);
+    const newContact = buildEditedContact(contacts[i]);
+    await postContact('/contacts', newContact);
     await loadDataContacts();
     contactClickHandler(contacts.length - 1);
     cancelEditContact();
     createContactList();
 }
 
+/** Builds a contact object from the edit form. */
+function buildEditedContact(contact) {
+    const name = stripYouSuffix(document.getElementById('editName').value);
+    return {
+        name,
+        mail: document.getElementById('editEmail').value,
+        phone: document.getElementById('editPhone').value,
+        profileColor: contact.profileColor,
+        initials: extractInitials(name),
+    };
+}
+
 // Öffnet die Box 'Add new Contact'
+/** Opens the add-contact panel. */
 function showAddContact() {
     document.getElementById('addNewContactAlert').innerHTML = '';
     document.getElementById('blurBackground').classList.remove('d-none');
@@ -297,6 +350,7 @@ function showAddContact() {
     }, 10);
 }
 
+/** Closes the add-contact panel. */
 function cancelAddContact() {
     addNewContact.style.transform = "translateX(120vw)";
     setTimeout(() => {
@@ -306,6 +360,7 @@ function cancelAddContact() {
     closeEditDiv();
 }
 
+/** Closes the edit-contact panel. */
 function cancelEditContact() {
     editContact.style.transform = "translateX(120vw)";
     setTimeout(() => {

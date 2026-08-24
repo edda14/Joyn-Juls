@@ -1,0 +1,142 @@
+{
+  "name": "02 – Status Change Notification",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "join-status-change",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "9a3b4428-5ad8-4e83-a9ca-496ea9a0d51c",
+      "name": "Status Change Webhook",
+      "webhookId": "0845d4e0-6a6d-4e4f-a185-47dcb7b24d8a"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * Validates and normalizes status-change data received from the Join board.\n */\nconst input = $input.first().json;\nconst payload = input.body ?? input;\n\nconst allowedStatuses = [\n  'triage',\n  'toDo',\n  'progress',\n  'feedback',\n  'done',\n];\n\nconst statusLabels = {\n  triage: 'Triage',\n  toDo: 'To do',\n  progress: 'In progress',\n  feedback: 'Await feedback',\n  done: 'Done',\n};\n\nconst oldStatus = String(payload.oldStatus || '').trim();\nconst newStatus = String(payload.newStatus || '').trim();\nconst creatorEmail = String(payload.creatorEmail || '').trim().toLowerCase();\n\nconst validEmail = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(creatorEmail);\nconst validStatus = allowedStatuses.includes(newStatus);\n\nreturn [{\n  json: {\n    taskId: String(payload.taskId || ''),\n    title: String(payload.title || 'Join-Ticket').trim().slice(0, 120),\n    oldStatus,\n    newStatus,\n    newStatusLabel: statusLabels[newStatus] || newStatus,\n    creatorName: String(payload.creatorName || 'Stakeholder').trim(),\n    creatorEmail,\n    creatorType: String(payload.creatorType || 'external'),\n    shouldNotify:\n      validEmail &&\n      validStatus &&\n      oldStatus !== newStatus,\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "65af5e29-1af4-40aa-8dfb-5ef666b1136b",
+      "name": "Validate Status Change"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "af13908e-c657-4fcc-aa53-7f54ca2c5c5b",
+              "leftValue": "={{ $json.shouldNotify }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        0
+      ],
+      "id": "44e89827-14d4-4b51-9812-35d6a5c47f9e",
+      "name": "Creator Can Be Notified?"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.creatorEmail }}",
+        "subject": "=Status-Update zu deinem Join-Ticket: {{ $json.title }}",
+        "emailType": "text",
+        "message": "=Hallo {{ $json.creatorName }},  der Status deines Tickets „{{ $json.title }}“ wurde geändert.  Neuer Status: {{ $json.newStatusLabel }}  Du erhältst weitere Benachrichtigungen, wenn sich der Status erneut ändert.  Viele Grüße das Join-Team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        -96
+      ],
+      "id": "5ea6019a-52b3-470b-a8ae-be61319851a9",
+      "name": "Send Status Update",
+      "webhookId": "fff4733c-ed5f-48f2-a0a9-e79de50c38f5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SqWtHVlPcTbHNKdw",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Status Change Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate Status Change",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Status Change": {
+      "main": [
+        [
+          {
+            "node": "Creator Can Be Notified?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Creator Can Be Notified?": {
+      "main": [
+        [
+          {
+            "node": "Send Status Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a757f612-ffbe-4d53-bb15-5f374f3a9ba6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a17d7476b651cddd04c7bf51b47df7b43f9b0230bee87fb5496653d7d913a1bd"
+  },
+  "nodeGroups": [],
+  "id": "ay8ygoruJxCCduyr",
+  "tags": []
+}

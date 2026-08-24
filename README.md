@@ -69,7 +69,7 @@ Serve the project through a local web server. With VS Code Live Server, open `in
 
 Do not open the HTML files directly with a `file://` URL because Firebase and browser modules require an HTTP origin.
 
-## Demo
+## How to Use
 
 The application starts at `index.html` with the Join logo animation and a role selection.
 
@@ -210,7 +210,11 @@ join283/
 - Private Gemini, Gmail, OAuth, and Firebase service-account credentials belong in their provider credential stores, not in source control.
 - `.gitignore` excludes environment files, Firebase debug data, service-account files, and local n8n credential exports.
 - Before every push, review staged files with `git diff --cached` and run a secret scan.
-- The stakeholder counter and status webhooks are public demo endpoints and must not contain credentials in their URLs or payloads.
+- The stakeholder counter and status webhooks are public endpoints and must not contain credentials in their URLs or payloads.
+
+## Known Limitations
+
+- Depending on the sender's email provider and spam-filter settings, automated confirmation emails may be delivered to the spam folder.
 
 ## Final Test Checklist
 

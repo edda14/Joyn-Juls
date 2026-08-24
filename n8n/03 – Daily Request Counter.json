@@ -1,0 +1,139 @@
+{
+  "name": "03 – Daily Request Counter",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "join-daily-request-count",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b3c0c813-e99b-47de-9ae7-ec6de6297ba1",
+      "name": "Webhook",
+      "webhookId": "5e416148-4696-4b36-9fc6-cfdb7a96e0f0"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "DGjWlSDDkvhg7A7b",
+          "mode": "list",
+          "cachedResultName": "issue_requests",
+          "cachedResultUrl": "/projects/Nq2tAMzGxrgDWdA0/datatables/DGjWlSDDkvhg7A7b"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "requestDate",
+              "keyValue": "={{ $now.setZone('Europe/Berlin').toFormat('yyyy-MM-dd') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        256,
+        16
+      ],
+      "id": "582ea8ce-5bdb-4741-a37b-a99b1cfa35d8",
+      "name": "Get Today's Requests",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * Creates the public daily request counter response.\n */\nconst requests = $input\n  .all()\n  .filter((item) => item.json && item.json.id);\n\nconst limit = 10;\nconst used = Math.min(requests.length, limit);\n\nreturn [\n  {\n    json: {\n      used,\n      limit,\n      remaining: Math.max(limit - used, 0),\n      limitReached: used >= limit,\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        16
+      ],
+      "id": "94431f3c-d29c-4a6f-8409-fa0672c8b813",
+      "name": "Build Counter Response"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        704,
+        16
+      ],
+      "id": "89517e9f-2e0d-486a-bbe7-6d995761b78e",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Today's Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Today's Requests": {
+      "main": [
+        [
+          {
+            "node": "Build Counter Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Counter Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "92a33df4-827b-4d8f-ab00-dab94f2b1c7c",
+  "meta": {
+    "instanceId": "a17d7476b651cddd04c7bf51b47df7b43f9b0230bee87fb5496653d7d913a1bd"
+  },
+  "nodeGroups": [],
+  "id": "Wsit8yMRu3Dos9t8",
+  "tags": []
+}

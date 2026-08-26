@@ -603,16 +603,9 @@ content: url('../assets/img/Property\ 1=Variant2.png');
 }
 
 @media (max-width: 650px) {
-    .taskContent {
-        flex-direction: column;
-        width: 100%;
-        height: auto;
-        overflow-x: visible;
-        white-space: normal;
-    }
+    
 
     .card {
-        width: 100%;
         max-width: 284px;
         height: auto;
         min-height: 215px;

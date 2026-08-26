@@ -130,9 +130,9 @@ async function sendRequest(data) {
     headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
     body: new URLSearchParams(data),
   });
+  if (response.ok) return { success: true };
   const result = await response.json().catch(() => ({}));
-  if (!response.ok || result.success === false) throw createRequestError(response, result);
-  return result;
+  throw createRequestError(response, result);
 }
 
 /** Creates a readable error from the n8n response. */

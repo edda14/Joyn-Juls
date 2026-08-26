@@ -680,7 +680,6 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "join-stakeholder-request",
-        "responseMode": "responseNode",
         "options": {}
       },
       "type": "n8n-nodes-base.webhook",
@@ -1344,7 +1343,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "2fc7a7bd-7e6e-4746-98cd-1b99083f2427",
+  "versionId": "ccd59551-e1b3-44ab-b21c-2dd8f287b352",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "a17d7476b651cddd04c7bf51b47df7b43f9b0230bee87fb5496653d7d913a1bd"

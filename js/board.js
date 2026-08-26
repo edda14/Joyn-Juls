@@ -181,14 +181,24 @@ async function addCompletedSubtasks(i, id) {
 }
 
 /**
- * Updates the progress bar for a task.
+ * Updates the progress bar for a task or hides it if totalSubtasks is 0.
  * @param {number} subtasksCompleted - Number of completed subtasks.
  * @param {number} totalSubtasks - Total number of subtasks.
  * @param {number} i - Index of the task.
  */
 function updateProgressBar(subtasksCompleted, totalSubtasks, i) {
-    let progressPercentage = (subtasksCompleted / totalSubtasks) * 100;
     let progressBar = document.getElementById(`progressBarId${i}`);
+    if (!progressBar) return;
+
+    let container = progressBar.closest('.progressbar');
+
+    if (!totalSubtasks || totalSubtasks === 0) {
+        if (container) container.style.display = 'none';
+        return;
+    }
+
+    if (container) container.style.display = 'flex';
+    let progressPercentage = (subtasksCompleted / totalSubtasks) * 100;
     progressBar.style.width = progressPercentage + '%';
 }
 

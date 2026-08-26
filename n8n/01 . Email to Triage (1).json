@@ -226,7 +226,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=\nDu analysierst eingehende Anfragen für ein Kanban-Board.\n\nAbsender: {{ $('Check Daily Limit').first().json.sender }}\nE-Mail: {{ $('Check Daily Limit').first().json.senderEmail }}\nBetreff: {{ $('Check Daily Limit').first().json.subject }}\nAngegebene Deadline: {{ $('Check Daily Limit').first().json.deadline || 'Keine Angabe' }}\nVom Nutzer gewählte Priorität: {{ $('Check Daily Limit').first().json.prio || 'Keine Angabe' }}\n\n\nNachricht:\n{{ $('Check Daily Limit').first().json.body }}\n\nErzeuge ausschließlich ein gültiges JSON-Objekt. Verwende keine Markdown-Codeblöcke und keinen zusätzlichen Text.\n\nDas JSON muss exakt diese Struktur haben:\n{\n  \"title\": \"Kurzer prägnanter Titel mit maximal 60 Zeichen\",\n  \"description\": \"Klare Zusammenfassung der Aufgabe. Dieses Ticket wurde KI-generiert.\",\n  \"category\": \"Technical Task oder User Story oder Bug\",\n  \"priority\": \"urgent oder medium oder low\",\n  \"deadline\": \"YYYY-MM-DD oder eine leere Zeichenkette\"\n}\n\nRegeln:\n- Technical Task: technische Arbeiten, Wartung, Refactoring oder Infrastruktur.\n- User Story: neue Funktion, Verbesserung oder Nutzerwunsch.\n- Bug: Fehler, Defekt oder unerwartetes Verhalten.\n- Wenn der Nutzer eine Priorität (urgent, medium, low) ausgewählt hat, übernehme diese bevorzugt.\n- urgent nur bei eindeutig hoher Dringlichkeit, kritischem Fehler oder sehr naher Deadline.\n- medium bei normaler geschäftlicher Relevanz.\n- low bei optionalen oder nicht dringenden Wünschen.\n- Extrahiere eine ausdrücklich genannte Deadline.\n- Wenn keine Deadline genannt wurde, verwende eine leere Zeichenkette \"\".\n- Erfinde keine Informationen.\n- Die Beschreibung muss immer mit \"Dieses Ticket wurde KI-generiert.\" enden.",
+        "text": "=\nDu analysierst eingehende Anfragen für ein Kanban-Board.\n\nAbsender: {{ $('Check Daily Limit').first().json.sender }}\nE-Mail: {{ $('Check Daily Limit').first().json.senderEmail }}\nBetreff: {{ $('Check Daily Limit').first().json.subject }}\nAngegebene Deadline: {{ $('Check Daily Limit').first().json.deadline || 'Keine Angabe' }}\nVom Nutzer gewählte Priorität: {{ $('Check Daily Limit').first().json.prio || 'Keine Angabe' }}\n\n\nNachricht:\n{{ $('Check Daily Limit').first().json.body }}\n\nErzeuge ausschließlich ein gültiges JSON-Objekt. Verwende keine Markdown-Codeblöcke und keinen zusätzlichen Text.\n\nDas JSON muss exakt diese Struktur haben:\n{\n  \"title\": \"Kurzer prägnanter Titel mit maximal 60 Zeichen\",\n  \"description\": \"Klare Zusammenfassung der Aufgabe. Dieses Ticket wurde KI-generiert.\",\n  \"category\": \"Technical Task oder User Story oder Bug\",\n  \"priority\": \"urgent oder medium oder low\",\n  \"deadline\": \"YYYY-MM-DD oder eine leere Zeichenkette\",\n  \"subtasks\": [\"Teilaufgabe 1\", \"Teilaufgabe 2\"]\n}\n\nRegeln:\n- Technical Task: technische Arbeiten, Wartung, Refactoring oder Infrastruktur.\n- User Story: neue Funktion, Verbesserung oder Nutzerwunsch.\n- Bug: Fehler, Defekt oder unerwartetes Verhalten.\n- Wenn im Text Teilaufgaben oder Unterpunkte (z.B. \"subtasks:\", Aufzählungen oder konkrete Schritte) genannt werden, extrahiere diese als Array von Strings in \"subtasks\". Falls keine vorhanden sind, gib ein leeres Array [] zurück.\n- Technical Task: technische Arbeiten, Wartung, Refactoring oder Infrastruktur.\n- User Story: neue Funktion, Verbesserung oder Nutzerwunsch.\n- Bug: Fehler, Defekt oder unerwartetes Verhalten.\n- Wenn der Nutzer eine Priorität (urgent, medium, low) ausgewählt hat, übernehme diese bevorzugt.\n- urgent nur bei eindeutig hoher Dringlichkeit, kritischem Fehler oder sehr naher Deadline.\n- medium bei normaler geschäftlicher Relevanz.\n- low bei optionalen oder nicht dringenden Wünschen.\n- Extrahiere eine ausdrücklich genannte Deadline.\n- Wenn keine Deadline genannt wurde, verwende eine leere Zeichenkette \"\".\n- Erfinde keine Informationen.\n- Die Beschreibung muss immer mit \"Dieses Ticket wurde KI-generiert.\" enden.",
         "hasOutputParser": true,
         "batching": {}
       },
@@ -262,7 +262,7 @@
     },
     {
       "parameters": {
-        "jsonSchemaExample": "{\n  \"title\": \"Login-Fehler beheben\",\n  \"description\": \"Der Login schlägt bei bestehenden Konten fehl. Dieses Ticket wurde KI-generiert.\",\n  \"category\": \"Bug\",\n  \"priority\": \"urgent\",\n  \"deadline\": \"\"\n}"
+        "jsonSchemaExample": "{\n  \"title\": \"Login-Fehler beheben\",\n  \"description\": \"Der Login schlägt bei bestehenden Konten fehl. Dieses Ticket wurde KI-generiert.\",\n  \"category\": \"Bug\",\n  \"priority\": \"urgent\",\n  \"deadline\": \"\",\n  \"subtasks\": [\n    \"Fehlermeldung im Frontend analysieren\",\n    \"Auth-Token Validierung prüfen\"\n  ]\n}"
       },
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
@@ -275,7 +275,7 @@
     },
     {
       "parameters": {
-        "jsCode": "/**\n * Converts the structured AI response and original email metadata into\n * the task format expected by the Join Kanban board.\n */\nconst aiResult = $input.first().json.output || {};\nconst requestData = $('Check Daily Limit').first().json;\n\nconst userPrio = requestData.prio || requestData.priority;\n\nconst allowedCategories = ['Technical Task', 'User Story', 'Bug'];\nconst allowedPriorities = ['urgent', 'medium', 'low'];\n\nconst finalPrio = allowedPriorities.includes(userPrio)\n  ? userPrio\n  : (allowedPriorities.includes(aiResult.priority) ? aiResult.priority : 'medium');\n\nconst senderName =\n  (requestData.sender || '')\n    .replace(/<[^>]+>/g, '')\n    .trim()\n    .replace(/^[\"']+|[\"']+$/g, '')\n    .trim() ||\n  (requestData.senderEmail || '').split('@')[0] ||\n  'External Stakeholder';\n\nconst deadline =\n  /^\\d{4}-\\d{2}-\\d{2}$/.test(aiResult.deadline || '')\n    ? aiResult.deadline\n    : '';\n\n// Subtasks aus der KI verarbeiten und als reine Strings formatieren\nconst rawSubtasks = Array.isArray(aiResult.subtasks) ? aiResult.subtasks : [];\nconst subcategoryStrings = rawSubtasks.map(t => String(t).trim()).filter(Boolean);\nconst subtaskCompletedStrings = subcategoryStrings.map(() => 'false');\n\nreturn [{\n  json: {\n    title: String(aiResult.title || requestData.subject || 'New request')\n      .trim()\n      .slice(0, 60),\n    description: String(aiResult.description || '').trim(),\n    assignedTo: [],\n    date: deadline,\n    prio: finalPrio,\n    category: allowedCategories.includes(aiResult.category)\n      ? aiResult.category\n      : 'Technical Task',\n    subcategory: subcategoryStrings,        // -> Array aus Strings: [\"Schritt 1\", \"Schritt 2\"]\n    completedSubtasks: subtaskCompletedStrings, // -> Array aus Strings: [\"false\", \"false\"]\n    status: 'triage',\n    creator: {\n      type: 'external',\n      role: 'stakeholder',\n      name: senderName,\n      email: requestData.senderEmail\n    },\n    source: requestData.source || 'form',\n    aiGenerated: true,\n    createdAt: new Date().toISOString(),\n    messageId: requestData.messageId || ''\n  }\n}];"
+        "jsCode": "/**\n * Converts the structured AI response and original email metadata into\n * the task format expected by the Join Kanban board.\n */\nconst aiResult = $input.first().json.output || {};\nconst requestData = $('Check Daily Limit').first().json;\n\nconst userPrio = requestData.prio || requestData.priority;\n\nconst allowedCategories = ['Technical Task', 'User Story', 'Bug'];\nconst allowedPriorities = ['urgent', 'medium', 'low'];\n\nconst finalPrio = allowedPriorities.includes(userPrio)\n  ? userPrio\n  : (allowedPriorities.includes(aiResult.priority) ? aiResult.priority : 'medium');\n\nconst senderName =\n  (requestData.sender || '')\n    .replace(/<[^>]+>/g, '')\n    .trim()\n    .replace(/^[\"']+|[\"']+$/g, '')\n    .trim() ||\n  (requestData.senderEmail || '').split('@')[0] ||\n  'External Stakeholder';\n\nconst deadline =\n  /^\\d{4}-\\d{2}-\\d{2}$/.test(aiResult.deadline || '')\n    ? aiResult.deadline\n    : '';\n\n\nconst rawSubtasks = Array.isArray(aiResult.subtasks) ? aiResult.subtasks : [];\nconst subcategoryStrings = rawSubtasks.map(t => String(t).trim()).filter(Boolean);\nconst subtaskCompletedStrings = subcategoryStrings.map(() => 'false');\n\n\nconst formattedSubtasks = subcategoryStrings.map(taskText => ({\n  title: taskText,\n  completed: false\n}));\n\nreturn [{\n  json: {\n    title: String(aiResult.title || requestData.subject || 'New request').trim().slice(0, 60),\n    description: String(aiResult.description || '').trim(),\n    assignedTo: [],\n    date: deadline,\n    prio: finalPrio,\n    category: allowedCategories.includes(aiResult.category) ? aiResult.category : 'Technical Task',\n    subcategory: subcategoryStrings,\n    completedSubtasks: subtaskCompletedStrings,\n    subtasks: formattedSubtasks,\n    status: 'triage',\n    creator: {\n      type: 'external',\n      role: 'stakeholder',\n      name: senderName,\n      email: requestData.senderEmail\n    },\n    source: requestData.source || 'form',\n    aiGenerated: true,\n    createdAt: new Date().toISOString(),\n    messageId: requestData.messageId || ''\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -291,7 +291,7 @@
         "projectId": "join-323f5-default-rtdb",
         "operation": "push",
         "path": "/task",
-        "attributes": "title,description,assignedTo,date,prio,category,subcategory,completedSubtasks,status,creator,source,aiGenerated,createdAt"
+        "attributes": "title,description,assignedTo,date,prio,category,subcategory,completedSubtasks,subtasks,status,creator,source,aiGenerated,createdAt"
       },
       "type": "n8n-nodes-base.googleFirebaseRealtimeDatabase",
       "typeVersion": 1,
@@ -680,7 +680,9 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "join-stakeholder-request",
-        "options": {}
+        "options": {
+          "allowedOrigins": "*"
+        }
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
@@ -828,35 +830,6 @@
     },
     {
       "parameters": {
-        "respondWith": "json",
-        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Deine Anfrage wurde erfolgreich erstellt.\",\n  \"ticketTitle\": \"{{ $('Build Join Task').first().json.title }}\"\n}",
-        "options": {
-          "responseCode": 200,
-          "responseHeaders": {
-            "entries": [
-              {
-                "name": "Access-Control-Allow-Origin",
-                "value": "*"
-              },
-              {
-                "name": "Cache-Control",
-                "value": "no-store"
-              }
-            ]
-          }
-        }
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        2960,
-        -48
-      ],
-      "id": "c21432b8-b9fa-4cc9-a901-3d8a72f56b33",
-      "name": "Respond Form Success"
-    },
-    {
-      "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
@@ -888,35 +861,6 @@
       ],
       "id": "ac86dcf2-9b1e-41bf-881e-aa65a1c6ac81",
       "name": "Form Limit Request?"
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "{\n  \"success\": false,\n  \"code\": \"DAILY_LIMIT_REACHED\",\n  \"message\": \"Das Tageslimit von 10 Anfragen wurde erreicht.\"\n}",
-        "options": {
-          "responseCode": 429,
-          "responseHeaders": {
-            "entries": [
-              {
-                "name": "Access-Control-Allow-Origin",
-                "value": "*"
-              },
-              {
-                "name": "Cache-Control",
-                "value": "no-store"
-              }
-            ]
-          }
-        }
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        1488,
-        -224
-      ],
-      "id": "929eb7b4-d85f-4bfe-b1b1-c29e6af00fde",
-      "name": "Respond Form Limit"
     },
     {
       "parameters": {
@@ -975,35 +919,6 @@
           "name": "Gmail account 2"
         }
       }
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "{\n  \"success\": false,\n  \"code\": \"PROCESSING_ERROR\",\n  \"message\": \"Deine Anfrage wurde empfangen, konnte aber nicht automatisch verarbeitet werden. Unser Team kümmert sich darum.\"\n}",
-        "options": {
-          "responseCode": 500,
-          "responseHeaders": {
-            "entries": [
-              {
-                "name": "Access-Control-Allow-Origin",
-                "value": "*"
-              },
-              {
-                "name": "Cache-Control",
-                "value": "no-store"
-              }
-            ]
-          }
-        }
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        2896,
-        384
-      ],
-      "id": "ef6122f7-0dcd-485f-9ff6-e3ce7c27c805",
-      "name": "Respond Form Error"
     }
   ],
   "pinData": {},
@@ -1280,24 +1195,12 @@
     },
     "Send Form Confirmation": {
       "main": [
-        [
-          {
-            "node": "Respond Form Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Form Limit Request?": {
       "main": [
-        [
-          {
-            "node": "Respond Form Limit",
-            "type": "main",
-            "index": 0
-          }
-        ],
+        [],
         [
           {
             "node": "Send Daily Limit Reply",
@@ -1327,13 +1230,7 @@
     },
     "Send Form Error Mail": {
       "main": [
-        [
-          {
-            "node": "Respond Form Error",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     }
   },
@@ -1343,7 +1240,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "ccd59551-e1b3-44ab-b21c-2dd8f287b352",
+  "versionId": "b8815990-bb0a-458a-a5cb-d92dcf111b8f",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "a17d7476b651cddd04c7bf51b47df7b43f9b0230bee87fb5496653d7d913a1bd"

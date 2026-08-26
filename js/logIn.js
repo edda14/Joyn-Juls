@@ -142,8 +142,9 @@ function resetInputBorders(emailInput, passwordInput) {
 }
 
 
-/** Opens the summary page. */
+/** Opens the summary page and enables the responsive greeting animation. */
 function redirectToSummary() {
+  sessionStorage.setItem('showGreeting', 'true');
   window.location.href = "./summary.html";
 }
 

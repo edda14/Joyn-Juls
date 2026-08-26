@@ -1,60 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="shortcut icon" href="./assets/img/joinDark.png" type="image/x-icon">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Summary</title>
-    <link rel="stylesheet" href="./css/navbar.css" />
-    <link rel="stylesheet" href="./css/header.css" />
-    <link rel="stylesheet" href="./css/summary.css" />
-  </head>
-  <body onload="summeryInit()">
-    <header w3-include-html="./template/header.html"></header>
-    <aside>
-      <div class="navbar">
-        <img class="joinIcon" src="./assets/img/joinWhite.png" alt="Join Icon" />
-        <div class="navbarContent">
-          <div class="menu">
-            <a id="summaryMenu" href="./summary.html" class="summery currentPage">
-              <img src="./assets/img/summeryIcon.png" alt="Summary" />
-              <p>Summary</p>
-            </a>
-            <a id="boardMenuResposive" href="./board.html" class="boardResposive">
-              <img src="./assets/img/boardIcon.png" alt="Board" />
-              <p>Board</p>
-            </a>
-            <a id="addTaskMenu" href="./addTask.html" class="addTask">
-              <img src="./assets/img/addTask.png" alt="Add Task" />
-              <p>Add Task</p>
-            </a>
-            <a id="boardMenu" href="./board.html" class="board">
-              <img src="./assets/img/boardIcon.png" alt="Board" />
-              <p>Board</p>
-            </a>
-            <a id="contactsMenu" href="./contacts.html" class="conntacts">
-              <img src="./assets/img/contacktsIcon.png" alt="Contacts" />
-              <p>Contacts</p>
-            </a>
-          </div>
-          <div class="policy">
-            <a id="privacyPolicyMenu" href="./privacyPolicy.html">Privacy Policy</a>
-            <a id="legalNoticeMenu" href="./legalNotice.html">Legal notice</a>
-          </div>
-        </div>
-      </div>
-    </aside>
 
-    <div class="container">
-      <div class="appHeader">
-        <p class="appHeaderTitle">Join 360</p>
-        <div class="appHeaderSubtitle">
-          <img class="horizontalBarBlue" src="./assets/img/horizontalBarBlue.png" alt="Blue bar" />
-          <p class="subtitleText">Key Metrics at a Glance</p>
-          <span class="blueBorder"></span>
+<head>
+  <meta charset="UTF-8" />
+  <link rel="shortcut icon" href="./assets/img/joinDark.png" type="image/x-icon">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Summary</title>
+  <link rel="stylesheet" href="./css/navbar.css" />
+  <link rel="stylesheet" href="./css/header.css" />
+  <link rel="stylesheet" href="./css/summary.css" />
+</head>
+
+<body onload="summeryInit()">
+  <header w3-include-html="./template/header.html"></header>
+  <aside>
+    <div class="navbar">
+      <img class="joinIcon" src="./assets/img/joinWhite.png" alt="Join Icon" />
+      <div class="navbarContent">
+        <div class="menu">
+          <a id="summaryMenu" href="./summary.html" class="summery currentPage">
+            <img src="./assets/img/summeryIcon.png" alt="Summary" />
+            <p>Summary</p>
+          </a>
+          <a id="boardMenuResposive" href="./board.html" class="boardResposive">
+            <img src="./assets/img/boardIcon.png" alt="Board" />
+            <p>Board</p>
+          </a>
+          <a id="addTaskMenu" href="./addTask.html" class="addTask">
+            <img src="./assets/img/addTask.png" alt="Add Task" />
+            <p>Add Task</p>
+          </a>
+          <a id="boardMenu" href="./board.html" class="board">
+            <img src="./assets/img/boardIcon.png" alt="Board" />
+            <p>Board</p>
+          </a>
+          <a id="contactsMenu" href="./contacts.html" class="conntacts">
+            <img src="./assets/img/contacktsIcon.png" alt="Contacts" />
+            <p>Contacts</p>
+          </a>
+        </div>
+        <div class="policy">
+          <a id="privacyPolicyMenu" href="./privacyPolicy.html">Privacy Policy</a>
+          <a id="legalNoticeMenu" href="./legalNotice.html">Legal notice</a>
         </div>
       </div>
-    
+    </div>
+  </aside>
+
+  <div class="container">
+    <div class="appHeader">
+      <p class="appHeaderTitle">Join 360</p>
+      <div class="appHeaderSubtitle">
+        <img class="horizontalBarBlue" src="./assets/img/horizontalBarBlue.png" alt="Blue bar" />
+        <p class="subtitleText">Key Metrics at a Glance</p>
+        <span class="blueBorder"></span>
+      </div>
+    </div>
+
 
     <div class="metricsContainer">
       <div class="metricsColumn">
@@ -78,31 +80,31 @@
             </div>
           </div>
         </div>
-        <div onclick="redirectToBoard()" class="metricCard urgentCard">
-          <div class="urgentContent">
-            <div class="urgentIconContainer">
-              <img
-                class="urgentIcon"
-                src="./assets/img/vectorUp.png"
-                alt="Check"
-              />
-              <img
-                class="urgentIcon"
-                src="./assets/img/vectorUp.png"
-                alt="Check"
-              />
+        <div class="metricsRow">
+          <div onclick="redirectToBoard()" class="urgentCard">
+            <div class="urgentContent">
+              <div class="urgentIconContainer">
+                <img class="urgentIcon" src="./assets/img/vectorUp.png" alt="Check" />
+                <img class="urgentIcon" src="./assets/img/vectorUp.png" alt="Check" />
+              </div>
+              <div class="metricDetails">
+                <p id="urgent" class="metricValue">1</p>
+                <p class="metricLabel">Urgent</p>
+              </div>
+
             </div>
-            <div class="metricDetails">
-              <p id="urgent" class="metricValue">1</p>
-              <p class="metricLabel">Urgent</p>
+            <div class="horizontalBar"></div>
+            <div class="deadlineContainer">
+              <p id="upcomingDeadline" class="deadlineDate">October 16, 2024</p>
+              <p class="deadlineLabel">Upcoming Deadline</p>
             </div>
           </div>
-          <div class="horizontalBar"></div>
-          <div class="deadlineContainer">
-            <p id="upcomingDeadline" class="deadlineDate">October 16, 2024</p>
-            <p class="deadlineLabel">Upcoming Deadline</p>
+         <div onclick="redirectToBoard()" class="metricCard taskContainer">
+            <p id="emailRequests" class="metricValue emailRequestValue" >0</p>
+            <p class="metricLabel taskText">Email Requests</p>
           </div>
         </div>
+
         <div class="metricsRow">
           <div onclick="redirectToBoard()" class="metricCard taskContainer">
             <p id="tasksInBoard" class="metricValue">1</p>
@@ -118,13 +120,13 @@
           </div>
         </div>
       </div>
-      <div class="greetingContainer">
-        <p id="greetingText" class="greetingText"></p>
-        <p id="userName" class="userName"></p>
+      <div class="animatedImageContainer">
+        <div class="greetingContainer">
+          <p id="greetingText" class="greetingText"></p>
+          <p id="userName" class="userName"></p>
+        </div>
       </div>
-      <div class="animatedImageContainer"></div>
     </div>
-  </div>
     <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth-compat.js"></script>
     <script src="./js/firebase.js"></script>
@@ -132,5 +134,6 @@
     <script src="./js/storage.js"></script>
     <script src="./js/template.js"></script>
     <script src="./js/contacts.js"></script>
-  </body>
+</body>
+
 </html>

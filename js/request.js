@@ -5,7 +5,7 @@ const NAME_MIN = 5;
 const NAME_MAX = 20;
 const SUBJECT_MIN = 5;
 const SUBJECT_MAX = 30;
-const MESSAGE_LIMIT = 200;
+const MESSAGE_LIMIT = 550;
 const NAME_PATTERN = /^[\p{L}\p{M}][\p{L}\p{M} '\u2019-]*[\p{L}\p{M}]$/u;
 const SUBJECT_PATTERN = /^[\p{L}\p{M}\p{N} .,!?:;()&+\/#'\u2019-]+$/u;
 let selectedPriority = "medium";
@@ -130,7 +130,9 @@ async function sendRequest(data) {
     headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
     body: new URLSearchParams(data),
   });
+
   if (response.ok) return { success: true };
+
   const result = await response.json().catch(() => ({}));
   throw createRequestError(response, result);
 }

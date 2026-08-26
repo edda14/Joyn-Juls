@@ -19,7 +19,7 @@
     },
     {
       "parameters": {
-        "jsCode": "/**\n * Validates and normalizes status-change data received from the Join board.\n */\nconst input = $input.first().json;\nconst payload = input.body ?? input;\n\nconst allowedStatuses = [\n  'triage',\n  'toDo',\n  'progress',\n  'feedback',\n  'done',\n];\n\nconst statusLabels = {\n  triage: 'Triage',\n  toDo: 'To do',\n  progress: 'In progress',\n  feedback: 'Await feedback',\n  done: 'Done',\n};\n\nconst oldStatus = String(payload.oldStatus || '').trim();\nconst newStatus = String(payload.newStatus || '').trim();\nconst creatorEmail = String(payload.creatorEmail || '').trim().toLowerCase();\n\nconst validEmail = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(creatorEmail);\nconst validStatus = allowedStatuses.includes(newStatus);\n\nreturn [{\n  json: {\n    taskId: String(payload.taskId || ''),\n    title: String(payload.title || 'Join-Ticket').trim().slice(0, 120),\n    oldStatus,\n    newStatus,\n    newStatusLabel: statusLabels[newStatus] || newStatus,\n    creatorName: String(payload.creatorName || 'Stakeholder').trim(),\n    creatorEmail,\n    creatorType: String(payload.creatorType || 'external'),\n    shouldNotify:\n      validEmail &&\n      validStatus &&\n      oldStatus !== newStatus,\n  },\n}];"
+        "jsCode": "const input = $input.first().json;\nconst payload = input.body ?? input;\n\nconst allowedStatuses = ['triage', 'toDo', 'progress', 'feedback', 'done'];\nconst statusLabels = {\n  triage: 'Triage',\n  toDo: 'To do',\n  progress: 'In progress',\n  feedback: 'Await feedback',\n  done: 'Done',\n};\n\nconst oldStatus = String(payload.oldStatus || '').trim();\nconst newStatus = String(payload.newStatus || '').trim();\nconst creatorEmail = String(payload.creatorEmail || '').trim().toLowerCase();\nconst creatorType = String(payload.creatorType || 'internal').trim().toLowerCase();\n\n// Exakte Prüfung auf gültige E-Mail (kein leerer String erlaubt!)\nconst validEmail = /^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(creatorEmail);\nconst validStatus = allowedStatuses.includes(newStatus);\n\n// NUR benachrichtigen wenn:\n// 1. Es ein externer Request ist (creatorType === 'external')\n// 2. Eine gültige E-Mail existiert (nicht leer!)\n// 3. Sich der Status wirklich geändert hat\nconst shouldNotify = (creatorType === 'external') && validEmail && validStatus && (oldStatus !== newStatus);\n\nreturn [{\n  json: {\n    taskId: String(payload.taskId || ''),\n    title: String(payload.title || 'Join-Ticket').trim().slice(0, 120),\n    oldStatus,\n    newStatus,\n    newStatusLabel: statusLabels[newStatus] || newStatus,\n    creatorName: String(payload.creatorName || 'Stakeholder').trim(),\n    creatorEmail,\n    creatorType,\n    shouldNotify\n  },\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -131,7 +131,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "a757f612-ffbe-4d53-bb15-5f374f3a9ba6",
+  "versionId": "a63c1835-e899-46f4-9e46-71039f1724c2",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "a17d7476b651cddd04c7bf51b47df7b43f9b0230bee87fb5496653d7d913a1bd"

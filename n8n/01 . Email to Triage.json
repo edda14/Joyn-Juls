@@ -323,7 +323,7 @@
           "conditions": [
             {
               "keyName": "messageId",
-              "keyValue": "=={{ $('Check Daily Limit').first().json.messageId }}"
+              "keyValue": "={{ $('Check Daily Limit').first().json.messageId }}"
             }
           ]
         },
@@ -777,9 +777,9 @@
             {
               "id": "2818d2c4-5ad8-4bf7-ac32-0a57ec887dc1",
               "leftValue": "={{ $('Check Daily Limit').first().json.source }}",
-              "rightValue": "=form",
+              "rightValue": "form",
               "operator": {
-                "type": "boolean",
+                "type": "string",
                 "operation": "equals"
               }
             }
@@ -1338,7 +1338,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "81aae924-8a3c-45ca-9548-381cbb6530dc",
+  "versionId": "90f85ae7-a625-474f-9515-af4c9ffd07c9",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "a17d7476b651cddd04c7bf51b47df7b43f9b0230bee87fb5496653d7d913a1bd"

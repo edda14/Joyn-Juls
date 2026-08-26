@@ -269,6 +269,11 @@ a {
   padding: 28px clamp(24px, 7vw, 96px);
 }
 
+.requestCounter[aria-busy="true"] {
+  opacity: 0.4;
+  transition: opacity 0.2s ease-in-out;
+}
+
 .stakeholderContent {
   width: min(100%, 900px);
 }

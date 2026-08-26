@@ -1,54 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Send an email to create an AI-assisted ticket in Join." />
-    <link rel="icon" href="./assets/img/joinDark.png" type="image/x-icon" />
-    <link rel="stylesheet" href="./css/landing.css" />
-    <title>Join – Create a request</title>
-  </head>
-  <body class="stakeholderPage">
-    <header class="stakeholderHeader">
-      <a href="./index.html" class="brandLink" aria-label="Back to welcome page">
-        <img src="./assets/img/joinDark.png" alt="Join" />
-      </a>
-      <a href="./index.html" class="backLink" aria-label="Back to welcome page">
-        <img src="./assets/img/arrow-left-line.svg" alt="" aria-hidden="true" />
-      </a>
-      <p id="requestCounter" class="requestCounter" aria-live="polite" aria-busy="true"><strong>0 of 10</strong> requests used today</p>
-    </header>
-    <main class="stakeholderMain">
-      <section class="stakeholderContent" aria-labelledby="stakeholder-title">
-        <div class="stakeholderTitle">
-          <h1 id="stakeholder-title">Welcome</h1>
-          <a href="./index.html" class="backLink mobileBackLink" aria-label="Back to welcome page">
-            <img src="./assets/img/arrow-left-line.svg" alt="" aria-hidden="true" />
-          </a>
-        </div>
-        <p class="requestCounter mobileRequestCounter" aria-live="polite" aria-busy="true"><strong>0 of 10</strong> requests used today</p>
-        <div class="stakeholderLayout">
-          <div class="stakeholderCopy">
-            <p id="limitNotice" class="limitNotice" hidden>The daily 10-request limit has been reached!</p>
-            <h2 id="stakeholderLead">Easily create a ticket with our request form.</h2>
-            <div id="normalCopy">
-              <p>Enter your feature request, technical task or bug directly in the form. Our AI will analyze it and create a ticket with a suitable category, deadline and priority.</p>
-              <p>Up to 10 requests can be created each day. Once the daily limit is reached, the form is disabled until the next day.</p>
-            </div>
-            <p id="limitCopy" hidden>The daily limit has been reached, so no further request can be submitted today. Please try again tomorrow.</p>
-            <a id="emailRequestButton" class="landingButton primaryButton emailButton" href="./request.html">Create request</a>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Send an email to create an AI-assisted ticket in Join." />
+  <link rel="icon" href="./assets/img/joinDark.png" type="image/x-icon" />
+  <link rel="stylesheet" href="./css/landing.css" />
+  <title>Join – Create a request</title>
+</head>
+
+<body class="stakeholderPage">
+  <header class="stakeholderHeader">
+    <a href="./index.html" class="brandLink" aria-label="Back to welcome page">
+      <img src="./assets/img/joinDark.png" alt="Join" />
+    </a>
+    <a href="./index.html" class="backLink" aria-label="Back to welcome page">
+      <img src="./assets/img/arrow-left-line.svg" alt="" aria-hidden="true" />
+    </a>
+    <p id="requestCounter" class="requestCounter" aria-live="polite" aria-busy="true"><strong>-- of 10</strong> requests
+      used today</p>
+  </header>
+  <main class="stakeholderMain">
+    <section class="stakeholderContent" aria-labelledby="stakeholder-title">
+      <div class="stakeholderTitle">
+        <h1 id="stakeholder-title">Welcome</h1>
+        <a href="./index.html" class="backLink mobileBackLink" aria-label="Back to welcome page">
+          <img src="./assets/img/arrow-left-line.svg" alt="" aria-hidden="true" />
+        </a>
+      </div>
+      <p class="requestCounter mobileRequestCounter" aria-live="polite" aria-busy="true"><strong>-- of 10</strong>
+        requests used today</p> requests used today</p>
+      <div class="stakeholderLayout">
+        <div class="stakeholderCopy">
+          <p id="limitNotice" class="limitNotice" hidden>The daily 10-request limit has been reached!</p>
+          <h2 id="stakeholderLead">Easily create a ticket with our request form.</h2>
+          <div id="normalCopy">
+            <p>Enter your feature request, technical task or bug directly in the form. Our AI will analyze it and create
+              a ticket with a suitable category, deadline and priority.</p>
+            <p>Up to 10 requests can be created each day. Once the daily limit is reached, the form is disabled until
+              the next day.</p>
           </div>
-          <div class="requestImageContainer" aria-hidden="true">
-            <img id="normalIllustration" class="requestImage" src="./assets/img/Rectangle11.svg" alt="" />
-            <img id="limitIllustration" class="requestImage" src="./assets/img/Artboard60%203.svg" alt="" hidden />
-          </div>
+          <p id="limitCopy" hidden>The daily limit has been reached, so no further request can be submitted today.
+            Please try again tomorrow.</p>
+          <a id="emailRequestButton" class="landingButton primaryButton emailButton" href="./request.html">Create
+            request</a>
         </div>
-      </section>
-    </main>
-    <footer class="landingFooter">
-      <a href="./privacyPolicyNoLogin.html">Privacy Policy</a>
-      <a href="./legalNoticeNoLogin.html">Legal notice</a>
-    </footer>
-    <script src="./js/landing.js"></script>
-  </body>
+        <div class="requestImageContainer" aria-hidden="true">
+          <img id="normalIllustration" class="requestImage" src="./assets/img/Rectangle11.svg" alt="" />
+          <img id="limitIllustration" class="requestImage" src="./assets/img/Artboard60%203.svg" alt="" hidden />
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="landingFooter">
+    <a href="./privacyPolicyNoLogin.html">Privacy Policy</a>
+    <a href="./legalNoticeNoLogin.html">Legal notice</a>
+  </footer>
+  <script src="./js/landing.js"></script>
+</body>
+
 </html>

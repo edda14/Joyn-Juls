@@ -22,6 +22,11 @@
   position: relative;
 }
 
+.requestCounter[aria-busy="true"] {
+  opacity: 0.4;
+  transition: opacity 0.2s ease-in-out;
+}
+
 .requestTitleRow h1 {
   width: fit-content;
   margin: 0 auto;

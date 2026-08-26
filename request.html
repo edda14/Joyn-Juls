@@ -1,106 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Create a stakeholder request for the Join board." />
-    <link rel="icon" href="./assets/img/joinDark.png" type="image/x-icon" />
-    <link rel="stylesheet" href="./css/landing.css" />
-    <link rel="stylesheet" href="./css/request.css" />
-    <title>Join – New request</title>
-  </head>
-  <body class="stakeholderPage requestPage">
-    <header class="stakeholderHeader requestHeader">
-      <a href="./index.html" class="brandLink" aria-label="Back to welcome page">
-        <img src="./assets/img/joinDark.png" alt="Join" />
-      </a>
-      <a href="./stakeholder.html" class="backLink" aria-label="Back to stakeholder page">
-        <img src="./assets/img/arrow-left-line.svg" alt="" aria-hidden="true" />
-      </a>
-      <p id="requestCounter" class="requestCounter" aria-live="polite" aria-busy="true"><strong>0 of 10</strong> requests used today</p>
-    </header>
 
-    <main class="requestMain">
-      <section class="requestCard" aria-labelledby="requestTitle">
-        <div class="requestTitleRow">
-          <h1 id="requestTitle">Create request</h1>
-          <a href="./stakeholder.html" class="mobileRequestBack" aria-label="Back to stakeholder page">
-            <img src="./assets/img/arrow-left-line.svg" alt="" aria-hidden="true" />
-          </a>
-        </div>
-        <p class="requestIntro">Tell us what you need. Our AI will analyze your request and create a ticket in the Triage column.</p>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Create a stakeholder request for the Join board." />
+  <link rel="icon" href="./assets/img/joinDark.png" type="image/x-icon" />
+  <link rel="stylesheet" href="./css/landing.css" />
+  <link rel="stylesheet" href="./css/request.css" />
+  <title>Join – New request</title>
+</head>
 
-        <div id="formMessage" class="formMessage" role="status" aria-live="polite" hidden></div>
-        <form id="requestForm" class="requestForm" novalidate>
-          <div class="fieldRow">
-            <div class="formField">
-              <label for="requestName">Full name<span aria-hidden="true">*</span></label>
-              <input id="requestName" name="name" type="text" minlength="5" maxlength="20" autocomplete="name" placeholder="First and last name" required />
-              <p id="nameError" class="fieldError"></p>
-            </div>
-            <div class="formField">
-              <label for="requestEmail">Email<span aria-hidden="true">*</span></label>
-              <input id="requestEmail" name="email" type="email" autocomplete="email" placeholder="name@example.com" required />
-              <p id="emailError" class="fieldError"></p>
-            </div>
-          </div>
+<body class="stakeholderPage requestPage">
+  <header class="stakeholderHeader requestHeader">
+    <a href="./index.html" class="brandLink" aria-label="Back to welcome page">
+      <img src="./assets/img/joinDark.png" alt="Join" />
+    </a>
+    <a href="./stakeholder.html" class="backLink" aria-label="Back to stakeholder page">
+      <img src="./assets/img/arrow-left-line.svg" alt="" aria-hidden="true" />
+    </a>
+    <p id="requestCounter" class="requestCounter" aria-live="polite" aria-busy="true"><strong>-- of 10</strong> requests
+      used today</p>
+  </header>
 
+  <main class="requestMain">
+    <section class="requestCard" aria-labelledby="requestTitle">
+      <div class="requestTitleRow">
+        <h1 id="requestTitle">Create request</h1>
+        <a href="./stakeholder.html" class="mobileRequestBack" aria-label="Back to stakeholder page">
+          <img src="./assets/img/arrow-left-line.svg" alt="" aria-hidden="true" />
+        </a>
+      </div>
+      <p class="requestIntro">Tell us what you need. Our AI will analyze your request and create a ticket in the Triage
+        column.</p>
+
+      <div id="formMessage" class="formMessage" role="status" aria-live="polite" hidden></div>
+      <form id="requestForm" class="requestForm" novalidate>
+        <div class="fieldRow">
           <div class="formField">
-            <label for="requestSubject">Subject<span aria-hidden="true">*</span></label>
-            <input id="requestSubject" name="subject" type="text" minlength="5" maxlength="30" placeholder="What is your request about?" required />
-            <p id="subjectError" class="fieldError"></p>
+            <label for="requestName">Full name<span aria-hidden="true">*</span></label>
+            <input id="requestName" name="name" type="text" minlength="5" maxlength="20" autocomplete="name"
+              placeholder="First and last name" required />
+            <p id="nameError" class="fieldError"></p>
           </div>
-
           <div class="formField">
-            <label for="requestDescription">Message<span aria-hidden="true">*</span></label>
-            <textarea id="requestDescription" name="description" rows="5" minlength="10" maxlength="200" placeholder="Describe your feature request, task or bug..." required></textarea>
-            <div class="messageInfo">
-              <p id="descriptionError" class="fieldError"></p>
-              <span id="messageCount">0 / 200</span>
-            </div>
+            <label for="requestEmail">Email<span aria-hidden="true">*</span></label>
+            <input id="requestEmail" name="email" type="email" autocomplete="email" placeholder="name@example.com"
+              required />
+            <p id="emailError" class="fieldError"></p>
           </div>
-
-          <div class="fieldRow requestOptions">
-            <div class="formField">
-              <label for="requestDeadline">Deadline <span class="optional">(optional)</span></label>
-              <input id="requestDeadline" name="deadline" type="date" />
-              <p class="fieldError"></p>
-            </div>
-            <fieldset class="priorityField">
-              <legend>Priority</legend>
-              <div class="priorityButtons">
-                <button class="priorityButton urgentButton" type="button" data-priority="urgent">
-                  Urgent <img src="./assets/img/urgent.png" alt="" />
-                </button>
-                <button class="priorityButton mediumButton selected" type="button" data-priority="medium" aria-pressed="true">
-                  Medium <img src="./assets/img/medium-white.png" alt="" />
-                </button>
-                <button class="priorityButton lowButton" type="button" data-priority="low">
-                  Low <img src="./assets/img/low.png" alt="" />
-                </button>
-              </div>
-            </fieldset>
-          </div>
-
-          <div class="formActions">
-            <a href="./stakeholder.html" class="cancelButton">Cancel</a>
-            <button id="submitRequest" class="submitButton" type="submit">Send request <span aria-hidden="true">✓</span></button>
-          </div>
-        </form>
-        <div id="successContent" class="successContent" role="status" tabindex="-1" hidden>
-          <div class="successIcon" aria-hidden="true">✓</div>
-          <h2>Your request was sent successfully!</h2>
-          <p>Thank you for your message. We will analyze it and create a ticket in the Join board.</p>
-          <p class="spamNote"><strong>Please note:</strong> Your confirmation email may be delivered to your spam folder.</p>
-          <a href="./stakeholder.html" class="successButton">Back to stakeholder page</a>
         </div>
-      </section>
-    </main>
 
-    <footer class="landingFooter">
-      <a href="./privacyPolicyNoLogin.html">Privacy Policy</a>
-      <a href="./legalNoticeNoLogin.html">Legal notice</a>
-    </footer>
-    <script src="./js/request.js"></script>
-  </body>
+        <div class="formField">
+          <label for="requestSubject">Subject<span aria-hidden="true">*</span></label>
+          <input id="requestSubject" name="subject" type="text" minlength="5" maxlength="30"
+            placeholder="What is your request about?" required />
+          <p id="subjectError" class="fieldError"></p>
+        </div>
+
+        <div class="formField">
+          <label for="requestDescription">Message<span aria-hidden="true">*</span></label>
+          <textarea id="requestDescription" name="description" rows="5" minlength="10" maxlength="200"
+            placeholder="Describe your feature request, task or bug..." required></textarea>
+          <div class="messageInfo">
+            <p id="descriptionError" class="fieldError"></p>
+            <span id="messageCount">0 / 200</span>
+          </div>
+        </div>
+
+        <div class="fieldRow requestOptions">
+          <div class="formField">
+            <label for="requestDeadline">Deadline <span class="optional">(optional)</span></label>
+            <input id="requestDeadline" name="deadline" type="date" />
+            <p class="fieldError"></p>
+          </div>
+          <fieldset class="priorityField">
+            <legend>Priority</legend>
+            <div class="priorityButtons">
+              <button class="priorityButton urgentButton" type="button" data-priority="urgent">
+                Urgent <img src="./assets/img/urgent.png" alt="" />
+              </button>
+              <button class="priorityButton mediumButton selected" type="button" data-priority="medium"
+                aria-pressed="true">
+                Medium <img src="./assets/img/medium-white.png" alt="" />
+              </button>
+              <button class="priorityButton lowButton" type="button" data-priority="low">
+                Low <img src="./assets/img/low.png" alt="" />
+              </button>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="formActions">
+          <a href="./stakeholder.html" class="cancelButton">Cancel</a>
+          <button id="submitRequest" class="submitButton" type="submit">Send request <span
+              aria-hidden="true">✓</span></button>
+        </div>
+      </form>
+      <div id="successContent" class="successContent" role="status" tabindex="-1" hidden>
+        <div class="successIcon" aria-hidden="true">✓</div>
+        <h2>Your request was sent successfully!</h2>
+        <p>Thank you for your message. We will analyze it and create a ticket in the Join board.</p>
+        <p class="spamNote"><strong>Please note:</strong> Your confirmation email may be delivered to your spam folder.
+        </p>
+        <a href="./stakeholder.html" class="successButton">Back to stakeholder page</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="landingFooter">
+    <a href="./privacyPolicyNoLogin.html">Privacy Policy</a>
+    <a href="./legalNoticeNoLogin.html">Legal notice</a>
+  </footer>
+  <script src="./js/request.js"></script>
+</body>
+
 </html>

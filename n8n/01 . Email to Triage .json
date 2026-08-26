@@ -98,7 +98,7 @@
           "conditions": [
             {
               "keyName": "requestDate",
-              "keyValue": "={{ $('Extract Email Data').item.json.requestDate }}"
+              "keyValue": "={{ $('Prepare Form Data').isExecuted\n  ? $('Prepare Form Data').first().json.requestDate\n  : $('Extract Email Data').first().json.requestDate }}"
             }
           ]
         }
@@ -115,7 +115,7 @@
     },
     {
       "parameters": {
-        "jsCode": "/**\n * Counts all accepted requests for the current day and preserves the\n * normalized email data for the following workflow branches.\n */\nconst requestsToday = $input\n  .all()\n  .filter(item => item.json.id)\n  .length;\n\nconst emailData = $('Extract Email Data').first().json;\nconst dailyLimit = 10;\n\nreturn [{\n  json: {\n    ...emailData,\n    requestsToday,\n    dailyLimit,\n    limitReached: requestsToday >= dailyLimit,\n  },\n}];"
+        "jsCode": "/**\n * Counts today's requests and keeps the normalized request data.\n * Supports requests received through Gmail and the stakeholder form.\n */\nconst formUsed = $('Prepare Form Data').isExecuted;\nconst requestData = formUsed\n  ? $('Prepare Form Data').first().json\n  : $('Extract Email Data').first().json;\n\nconst requestsToday = $input\n  .all()\n  .filter(item => item.json.id)\n  .length;\n\nconst dailyLimit = 10;\n\nreturn [{\n  json: {\n    ...requestData,\n    requestsToday,\n    dailyLimit,\n    limitReached: requestsToday >= dailyLimit,\n  },\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -172,8 +172,8 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "requestDate": "={{ $('Extract Email Data').item.json.requestDate }}",
-            "messageId": "={{ $('Extract Email Data').item.json.messageId }}",
+            "requestDate": "={{ $('Check Daily Limit').first().json.requestDate }}",
+            "messageId": "={{ $('Check Daily Limit').first().json.messageId }}",
             "status": "processing"
           },
           "matchingColumns": [],
@@ -226,15 +226,15 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Du analysierst eingehende E-Mails für ein Kanban-Board.\n\nAbsender: {{ $('Extract Email Data').item.json.sender }}\nBetreff: {{ $('Extract Email Data').item.json.subject }}\nNachricht:\n{{ $('Extract Email Data').item.json.body }}\n\nErzeuge ausschließlich ein gültiges JSON-Objekt. Verwende keine Markdown-Codeblöcke und keinen zusätzlichen Text.\n\nDas JSON muss exakt diese Struktur haben:\n{\n  \"title\": \"Kurzer prägnanter Titel mit maximal 60 Zeichen\",\n  \"description\": \"Klare Zusammenfassung der Aufgabe. Dieses Ticket wurde KI-generiert.\",\n  \"category\": \"Technical Task oder User Story oder Bug\",\n  \"priority\": \"urgent oder medium oder low\",\n  \"deadline\": \"YYYY-MM-DD oder eine leere Zeichenkette\"\n}\n\nRegeln:\n- Technical Task: technische Arbeiten, Wartung, Refactoring oder Infrastruktur.\n- User Story: neue Funktion, Verbesserung oder Nutzerwunsch.\n- Bug: Fehler, Defekt oder unerwartetes Verhalten.\n- urgent nur bei eindeutig hoher Dringlichkeit, kritischem Fehler oder sehr naher Deadline.\n- medium bei normaler geschäftlicher Relevanz.\n- low bei optionalen oder nicht dringenden Wünschen.\n- Extrahiere eine ausdrücklich genannte Deadline.\n- Wenn keine Deadline genannt wurde, verwende eine leere Zeichenkette \"\".\n- Erfinde keine Informationen.\n- Die Beschreibung muss immer mit \"Dieses Ticket wurde KI-generiert.\" enden.",
+        "text": "=\nDu analysierst eingehende Anfragen für ein Kanban-Board.\n\nAbsender: {{ $('Check Daily Limit').first().json.sender }}\nE-Mail: {{ $('Check Daily Limit').first().json.senderEmail }}\nBetreff: {{ $('Check Daily Limit').first().json.subject }}\nAngegebene Deadline: {{ $('Check Daily Limit').first().json.deadline || 'Keine Angabe' }}\n\nNachricht:\n{{ $('Check Daily Limit').first().json.body }}\n\nErzeuge ausschließlich ein gültiges JSON-Objekt. Verwende keine Markdown-Codeblöcke und keinen zusätzlichen Text.\n\nDas JSON muss exakt diese Struktur haben:\n{\n  \"title\": \"Kurzer prägnanter Titel mit maximal 60 Zeichen\",\n  \"description\": \"Klare Zusammenfassung der Aufgabe. Dieses Ticket wurde KI-generiert.\",\n  \"category\": \"Technical Task oder User Story oder Bug\",\n  \"priority\": \"urgent oder medium oder low\",\n  \"deadline\": \"YYYY-MM-DD oder eine leere Zeichenkette\"\n}\n\nRegeln:\n- Technical Task: technische Arbeiten, Wartung, Refactoring oder Infrastruktur.\n- User Story: neue Funktion, Verbesserung oder Nutzerwunsch.\n- Bug: Fehler, Defekt oder unerwartetes Verhalten.\n- urgent nur bei eindeutig hoher Dringlichkeit, kritischem Fehler oder sehr naher Deadline.\n- medium bei normaler geschäftlicher Relevanz.\n- low bei optionalen oder nicht dringenden Wünschen.\n- Extrahiere eine ausdrücklich genannte Deadline.\n- Wenn keine Deadline genannt wurde, verwende eine leere Zeichenkette \"\".\n- Erfinde keine Informationen.\n- Die Beschreibung muss immer mit \"Dieses Ticket wurde KI-generiert.\" enden.",
         "hasOutputParser": true,
         "batching": {}
       },
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.9,
       "position": [
-        1408,
-        96
+        1360,
+        128
       ],
       "id": "f0442491-3736-4b2f-9adf-9a7640eda5cb",
       "name": "Basic LLM Chain",
@@ -248,8 +248,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1.1,
       "position": [
-        1408,
-        288
+        1360,
+        336
       ],
       "id": "2ad13cec-1efd-490e-a872-54ae0531ed09",
       "name": "Google Gemini Chat Model",
@@ -267,15 +267,15 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        1552,
-        304
+        1520,
+        368
       ],
       "id": "bfce1041-fcde-4ca4-9586-d6adb02cb2d2",
       "name": "Structured Output Parser"
     },
     {
       "parameters": {
-        "jsCode": "/**\n * Converts the structured AI response and original email metadata into\n * the task format expected by the Join Kanban board.\n */\nconst aiResult = $input.first().json.output;\nconst emailData = $('Extract Email Data').first().json;\n\nconst allowedCategories = ['Technical Task', 'User Story', 'Bug'];\nconst allowedPriorities = ['urgent', 'medium', 'low'];\n\nconst senderName =\n  (emailData.sender || '')\n    .replace(/<[^>]+>/g, '')\n    .trim()\n    .replace(/^[\"']+|[\"']+$/g, '')\n    .trim() ||\n  (emailData.senderEmail || '').split('@')[0] ||\n  'External Stakeholder';\n\nconst deadline =\n  /^\\d{4}-\\d{2}-\\d{2}$/.test(aiResult.deadline || '')\n    ? aiResult.deadline\n    : '';\n\nreturn [{\n  json: {\n    title: String(aiResult.title || emailData.subject || 'New request')\n      .trim()\n      .slice(0, 60),\n    description: String(aiResult.description || '').trim(),\n    assignedTo: [],\n    date: deadline,\n    prio: allowedPriorities.includes(aiResult.priority)\n      ? aiResult.priority\n      : 'medium',\n    category: allowedCategories.includes(aiResult.category)\n      ? aiResult.category\n      : 'Technical Task',\n    subcategory: [],\n    completedSubtasks: [],\n    status: 'triage',\n    creator: {\n      type: 'external',\n      role: 'stakeholder',\n      name: senderName,\n      email: emailData.senderEmail\n    },\n    source: 'email',\n    aiGenerated: true,\n    createdAt: new Date().toISOString(),\n    messageId: emailData.messageId\n  }\n}];"
+        "jsCode": "/**\n * Converts the structured AI response and original email metadata into\n * the task format expected by the Join Kanban board.\n */\nconst aiResult = $input.first().json.output;\nconst requestData = $('Check Daily Limit').first().json;\n\nconst allowedCategories = ['Technical Task', 'User Story', 'Bug'];\nconst allowedPriorities = ['urgent', 'medium', 'low'];\n\nconst senderName =\n  (requestData.sender || '')\n    .replace(/<[^>]+>/g, '')\n    .trim()\n    .replace(/^[\"']+|[\"']+$/g, '')\n    .trim() ||\n  (requestData.senderEmail || '').split('@')[0] ||\n  'External Stakeholder';\n\nconst deadline =\n  /^\\d{4}-\\d{2}-\\d{2}$/.test(aiResult.deadline || '')\n    ? aiResult.deadline\n    : '';\n\nreturn [{\n  json: {\n    title: String(aiResult.title || requestData.subject || 'New request')\n      .trim()\n      .slice(0, 60),\n    description: String(aiResult.description || '').trim(),\n    assignedTo: [],\n    date: deadline,\n    prio: allowedPriorities.includes(aiResult.priority)\n      ? aiResult.priority\n      : 'medium',\n    category: allowedCategories.includes(aiResult.category)\n      ? aiResult.category\n      : 'Technical Task',\n    subcategory: [],\n    completedSubtasks: [],\n    status: 'triage',\n    creator: {\n      type: 'external',\n      role: 'stakeholder',\n      name: senderName,\n      email: requestData.senderEmail\n    },\n    source: requestData.source || 'email',\n    aiGenerated: true,\n    createdAt: new Date().toISOString(),\n    messageId: requestData.messageId\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -323,7 +323,7 @@
           "conditions": [
             {
               "keyName": "messageId",
-              "keyValue": "={{ $('Extract Email Data').item.json.messageId }}"
+              "keyValue": "=={{ $('Check Daily Limit').first().json.messageId }}"
             }
           ]
         },
@@ -392,8 +392,8 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        2448,
-        96
+        2736,
+        160
       ],
       "id": "dca53090-5240-4373-ab04-d24cd81d44ba",
       "name": "Send Success Confirmation",
@@ -417,8 +417,8 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        2672,
-        96
+        2960,
+        144
       ],
       "id": "a52acdd5-3b64-47f1-a75d-07827cee2395",
       "name": "Add Erledigt Label",
@@ -442,8 +442,8 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        2896,
-        96
+        3152,
+        144
       ],
       "id": "8b5d1208-0657-4081-88d9-6ce7182937c1",
       "name": "Remove Neu Label",
@@ -468,8 +468,8 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        1120,
-        -96
+        1456,
+        -80
       ],
       "id": "3783ccde-4869-488a-ad9a-f1accc05e86a",
       "name": "Send Daily Limit Reply",
@@ -493,8 +493,8 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        1344,
-        -96
+        1712,
+        -80
       ],
       "id": "1bc48b4e-74bf-4760-b5f8-fab20adeb481",
       "name": "Limit - Add Erledigt Label",
@@ -518,8 +518,8 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        1568,
-        -96
+        1968,
+        -80
       ],
       "id": "2b84b93c-b64a-4742-89bc-66dcaacd7550",
       "name": "Limit - Remove Neu Label",
@@ -542,8 +542,8 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        1952,
-        304
+        2640,
+        592
       ],
       "id": "5391065d-1670-4bdb-ae69-20a9dd45d563",
       "name": "Send Error Reply – AI",
@@ -567,8 +567,8 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        2176,
-        304
+        2912,
+        592
       ],
       "id": "66d045ac-d4a5-4d9f-9194-7073f50f7cfd",
       "name": "Error – Add Zu bearbeiten Label",
@@ -592,8 +592,8 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        2400,
-        304
+        3168,
+        576
       ],
       "id": "de04e51b-53cb-429d-9e1e-deef0d60d9ac",
       "name": "Error – Remove Neu Label",
@@ -620,7 +620,7 @@
           "conditions": [
             {
               "keyName": "messageId",
-              "keyValue": "={{ $('Extract Email Data').item.json.messageId }}"
+              "keyValue": "={{ $('Check Daily Limit').first().json.messageId }}"
             }
           ]
         },
@@ -670,11 +670,335 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        1728,
-        304
+        2176,
+        368
       ],
       "id": "27868e69-53d8-4726-b2c9-fb5e9829029f",
       "name": "Mark Request Error"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "join-stakeholder-request",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -16,
+        208
+      ],
+      "id": "38f46895-5fa5-4a2e-8349-1b2e166374fb",
+      "name": "Webhook",
+      "webhookId": "36628182-8fcb-434e-bc2b-3d7a6c04c472"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a8474185-77e1-4ae9-818e-f07d8309c774",
+              "name": "=senderEmail",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "28772457-1be4-493e-aa7c-126bcc3c8951",
+              "name": "=senderName",
+              "value": "={{ $json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "42f5e294-d036-4595-8fcd-ca092c7c45ac",
+              "name": "=subject",
+              "value": "={{ $json.body.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "1e15badc-6c03-4781-b907-dc228d45a686",
+              "name": "=body",
+              "value": "={{ $json.body.description }}",
+              "type": "string"
+            },
+            {
+              "id": "589dbdb3-1e9c-45bb-9c8d-78e5589ca952",
+              "name": "=deadline",
+              "value": "={{ $json.body.deadline || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "aa261777-47a6-4c98-ad75-b85d21ffab38",
+              "name": "=messageId",
+              "value": "={{ 'form-' + $now.toMillis() }}",
+              "type": "string"
+            },
+            {
+              "id": "106ddd46-4293-4355-99c7-e80dcf2e24c0",
+              "name": "source",
+              "value": "form",
+              "type": "string"
+            },
+            {
+              "id": "6ca2763b-0e0f-4ae7-86e0-d2380cb09ad5",
+              "name": "=sender",
+              "value": "={{ $json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "ec4db878-7812-4607-99ea-a8d29e548161",
+              "name": "=requestDate",
+              "value": "={{ $now.setZone('Europe/Berlin').toFormat('yyyy-MM-dd') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        208,
+        208
+      ],
+      "id": "d93c3846-efb4-4bc9-9190-47f149e28347",
+      "name": "Prepare Form Data"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2818d2c4-5ad8-4bf7-ac32-0a57ec887dc1",
+              "leftValue": "={{ $('Check Daily Limit').first().json.source }}",
+              "rightValue": "=form",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2464,
+        96
+      ],
+      "id": "95517888-f9ba-4ecc-b96d-adc22aedd609",
+      "name": "Form Request?"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Check Daily Limit').first().json.senderEmail }}",
+        "subject": "Deine Join-Anfrage wurde erstellt",
+        "emailType": "text",
+        "message": "=Hallo {{ $('Build Join Task').first().json.creator.name }},  vielen Dank für deine Anfrage.  Dein Ticket „{{ $('Build Join Task').first().json.title }}“ wurde erfolgreich analysiert und im Join-Board in der Triage-Spalte angelegt.  Kategorie: {{ $('Build Join Task').first().json.category }} Priorität: {{ $('Build Join Task').first().json.prio }} Deadline: {{ $('Build Join Task').first().json.date || 'Keine Deadline angegeben' }}  Du erhältst eine weitere Nachricht, sobald sich der Status deines Tickets ändert.  Viele Grüße das Join-Team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2736,
+        -48
+      ],
+      "id": "5e65fea3-f4f0-4aa7-93c0-86b17061a1f7",
+      "name": "Send Form Confirmation",
+      "webhookId": "1df0b235-f24d-43f5-8456-5463c9877da1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SqWtHVlPcTbHNKdw",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Deine Anfrage wurde erfolgreich erstellt.\",\n  \"ticketTitle\": \"{{ $('Build Join Task').first().json.title }}\"\n}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2960,
+        -48
+      ],
+      "id": "c21432b8-b9fa-4cc9-a901-3d8a72f56b33",
+      "name": "Respond Form Success"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0f9ecc0f-451a-42fe-836d-e3d04aaf3379",
+              "leftValue": "={{ $('Check Daily Limit').first().json.source }}",
+              "rightValue": "form",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1184,
+        -128
+      ],
+      "id": "ac86dcf2-9b1e-41bf-881e-aa65a1c6ac81",
+      "name": "Form Limit Request?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": false,\n  \"code\": \"DAILY_LIMIT_REACHED\",\n  \"message\": \"Das Tageslimit von 10 Anfragen wurde erreicht.\"\n}",
+        "options": {
+          "responseCode": 429,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1488,
+        -224
+      ],
+      "id": "929eb7b4-d85f-4bfe-b1b1-c29e6af00fde",
+      "name": "Respond Form Limit"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f1ec659c-d4bb-4212-8943-5a3fc4609c5c",
+              "leftValue": "={{ $('Check Daily Limit').first().json.source }}",
+              "rightValue": "form",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2400,
+        368
+      ],
+      "id": "ed0afa0d-1d38-4e49-899f-3238b8f9f1d4",
+      "name": "Form Error Request?"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Check Daily Limit').first().json.senderEmail }}",
+        "subject": "Deine Join-Anfrage konnte nicht automatisch verarbeitet werden",
+        "emailType": "text",
+        "message": "=Hallo {{ $('Check Daily Limit').first().json.sender }},  vielen Dank für deine Anfrage. Bei der automatischen Verarbeitung ist leider ein Fehler aufgetreten.  Unser Team hat deine Anfrage erhalten und wird sich zeitnah darum kümmern. Es wurde vorerst kein Ticket automatisch erstellt.  Viele Grüße das Join-Team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2672,
+        384
+      ],
+      "id": "3569e2bd-dcb2-4b84-adeb-922801e1bc90",
+      "name": "Send Form Error Mail",
+      "webhookId": "7e1a637f-933d-423a-a602-b634126ab1e4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SqWtHVlPcTbHNKdw",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": false,\n  \"code\": \"PROCESSING_ERROR\",\n  \"message\": \"Deine Anfrage wurde empfangen, konnte aber nicht automatisch verarbeitet werden. Unser Team kümmert sich darum.\"\n}",
+        "options": {
+          "responseCode": 500,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2896,
+        384
+      ],
+      "id": "ef6122f7-0dcd-485f-9ff6-e3ce7c27c805",
+      "name": "Respond Form Error"
     }
   ],
   "pinData": {},
@@ -727,7 +1051,7 @@
       "main": [
         [
           {
-            "node": "Send Daily Limit Reply",
+            "node": "Form Limit Request?",
             "type": "main",
             "index": 0
           }
@@ -825,7 +1149,7 @@
       "main": [
         [
           {
-            "node": "Send Success Confirmation",
+            "node": "Form Request?",
             "type": "main",
             "index": 0
           }
@@ -902,7 +1226,105 @@
       "main": [
         [
           {
+            "node": "Form Error Request?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prepare Form Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Form Data": {
+      "main": [
+        [
+          {
+            "node": "Get Today's Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form Request?": {
+      "main": [
+        [
+          {
+            "node": "Send Form Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Success Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Form Confirmation": {
+      "main": [
+        [
+          {
+            "node": "Respond Form Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form Limit Request?": {
+      "main": [
+        [
+          {
+            "node": "Respond Form Limit",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Daily Limit Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form Error Request?": {
+      "main": [
+        [
+          {
+            "node": "Send Form Error Mail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
             "node": "Send Error Reply – AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Form Error Mail": {
+      "main": [
+        [
+          {
+            "node": "Respond Form Error",
             "type": "main",
             "index": 0
           }
@@ -916,7 +1338,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "a249e4dd-ce20-4504-a51e-e404d2adabc4",
+  "versionId": "81aae924-8a3c-45ca-9548-381cbb6530dc",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "a17d7476b651cddd04c7bf51b47df7b43f9b0230bee87fb5496653d7d913a1bd"

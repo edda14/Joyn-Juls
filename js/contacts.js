@@ -226,7 +226,7 @@ function clearContactInputs(inputs) {
 /** Opens a selected contact in the appropriate layout. */
 function contactClickHandler(i) {
     let contact = contacts[i];
-    if (window.innerWidth < 1300) {
+    if (window.innerWidth <= 1150) {
         editContactResponsive(contact, i);
     } else {
         let contactSection = document.getElementById('viewContact');
@@ -255,7 +255,8 @@ function showEditDiv(i) {
 
 /** Slides the responsive edit actions out of view. */
 function closeEditDiv() {
-    let editDivResp = document.getElementById('editDivResp');
+    const editDivResp = document.getElementById('editDivResp');
+    if (!editDivResp) return;
     setTimeout(() => {
         editDivResp.style.right = '-200px';
     }, 10);

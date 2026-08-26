@@ -1,0 +1,392 @@
+.requestPage {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.requestMain {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  padding: 36px 24px;
+}
+
+.requestCard {
+  width: min(100%, 900px);
+  padding: 36px 44px;
+  background: white;
+  border-radius: 28px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.requestTitleRow {
+  position: relative;
+}
+
+.requestTitleRow h1 {
+  width: fit-content;
+  margin: 0 auto;
+  padding-bottom: 9px;
+  border-bottom: 3px solid #29abe2;
+  color: #2a3647;
+  font-size: clamp(34px, 4vw, 48px);
+  line-height: 1.1;
+}
+
+.requestIntro {
+  max-width: 650px;
+  margin: 20px auto 30px;
+  color: #56647a;
+  font-size: 17px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.mobileRequestBack {
+  display: none;
+}
+
+.requestForm {
+  display: grid;
+  gap: 18px;
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.formField {
+  min-width: 0;
+}
+
+.formField label,
+.priorityField legend {
+  display: block;
+  margin-bottom: 7px;
+  color: #2a3647;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.formField label span:not(.optional) {
+  color: #ff3d00;
+}
+
+.optional {
+  color: #7a8698;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.formField input,
+.formField textarea {
+  width: 100%;
+  padding: 13px 16px;
+  border: 1px solid #a8a8a8;
+  border-radius: 10px;
+  outline: none;
+  color: #2a3647;
+  background: white;
+  font: inherit;
+  line-height: 1.35;
+}
+
+.formField textarea {
+  min-height: 128px;
+  resize: vertical;
+}
+
+.formField input:focus,
+.formField textarea:focus {
+  border-color: #29abe2;
+}
+
+.formField .invalid {
+  border-color: #ff3d00;
+}
+
+.fieldError {
+  min-height: 18px;
+  margin: 4px 0 0;
+  color: #e32b0c;
+  font-size: 14px;
+}
+
+.messageInfo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.messageInfo span {
+  flex: none;
+  margin-top: 5px;
+  color: #7a8698;
+  font-size: 14px;
+}
+
+.priorityField {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.priorityButtons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.priorityButton {
+  display: flex;
+  min-width: 0;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid #d1d1d1;
+  border-radius: 10px;
+  background: white;
+  color: #2a3647;
+  font: inherit;
+  cursor: pointer;
+}
+
+.priorityButton:hover,
+.priorityButton:focus-visible {
+  box-shadow: 0 4px 4px #00000040;
+}
+
+.priorityButton img {
+  width: 19px;
+  height: 15px;
+  object-fit: contain;
+}
+
+.urgentButton.selected {
+  color: white;
+  background: #ff3d00;
+}
+
+.mediumButton.selected {
+  color: white;
+  background: #ffa800;
+}
+
+.lowButton.selected {
+  color: white;
+  background: #7ae229;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.cancelButton,
+.submitButton {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 18px;
+  border: 1px solid #2a3647;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cancelButton {
+  background: white;
+}
+
+.submitButton {
+  gap: 8px;
+  color: white;
+  background: #2a3647;
+}
+
+.submitButton:hover,
+.submitButton:focus-visible {
+  background: #29abe2;
+  border-color: #29abe2;
+}
+
+.submitButton:disabled,
+.disabledButton {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.formMessage {
+  margin-bottom: 22px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #e8f7ee;
+  color: #176638;
+  line-height: 1.4;
+}
+
+.formMessage.errorMessage {
+  background: #ffe7e7;
+  color: #9c1c1c;
+}
+
+.formMessage.limitMessage {
+  background: #fff1dc;
+  color: #8b4b00;
+}
+
+.successContent {
+  display: grid;
+  max-width: 580px;
+  justify-items: center;
+  gap: 16px;
+  margin: 34px auto 12px;
+  color: #2a3647;
+  text-align: center;
+}
+
+.successContent[hidden] {
+  display: none;
+}
+
+.successIcon {
+  display: grid;
+  width: 72px;
+  height: 72px;
+  place-items: center;
+  border-radius: 50%;
+  color: white;
+  background: #29abe2;
+  font-size: 40px;
+  font-weight: 700;
+}
+
+.successContent h2,
+.successContent p {
+  margin: 0;
+}
+
+.successContent h2 {
+  font-size: 28px;
+}
+
+.successContent p {
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.spamNote {
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #fff1dc;
+}
+
+.successButton {
+  margin-top: 6px;
+  padding: 13px 18px;
+  border-radius: 10px;
+  color: white;
+  background: #2a3647;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.successButton:hover,
+.successButton:focus-visible {
+  background: #29abe2;
+}
+
+@media (max-width: 700px) {
+  .requestMain {
+    align-items: start;
+    padding: 24px 16px;
+  }
+
+  .requestCard {
+    padding: 28px 22px;
+    border-radius: 22px;
+  }
+
+  .fieldRow {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .requestOptions {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .requestHeader .backLink {
+    display: none;
+  }
+
+  .requestMain {
+    padding: 18px 10px 26px;
+  }
+
+  .requestCard {
+    padding: 25px 16px;
+  }
+
+  .requestTitleRow h1 {
+    margin-left: 0;
+    font-size: 32px;
+  }
+
+  .mobileRequestBack {
+    position: absolute;
+    top: -3px;
+    right: 0;
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 50%;
+  }
+
+  .mobileRequestBack img {
+    width: 25px;
+  }
+
+  .requestIntro {
+    margin: 18px 0 24px;
+    text-align: left;
+  }
+
+  .priorityButtons {
+    gap: 6px;
+  }
+
+  .priorityButton {
+    height: 44px;
+    gap: 4px;
+    font-size: 14px;
+  }
+
+  .priorityButton img {
+    width: 16px;
+  }
+
+  .formActions {
+    display: grid;
+    grid-template-columns: 1fr 1.35fr;
+  }
+
+  .cancelButton,
+  .submitButton {
+    padding-inline: 10px;
+    font-size: 15px;
+  }
+}

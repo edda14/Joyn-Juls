@@ -4,7 +4,6 @@ let guest = { name: "Guest", email: null, role: "guest" };
 
 /** Initializes login-page data and input behavior. */
 async function logInInit() {
-  await loadDataContacts();
   getSavedUser();
   addHoverForLogin();
   checkInputs();
@@ -110,6 +109,7 @@ async function completeLogin(firebaseUser, enteredEmail) {
     name: firebaseUser.displayName || enteredEmail.split('@')[0],
     email: firebaseUser.email };
   sessionStorage.setItem('currentUser', JSON.stringify(user));
+  await loadDataContacts();
   await addNewContact(user);
   redirectToSummary();
 }
@@ -189,20 +189,21 @@ function handlePaswordVisibility() {
   let passwordInput = document.getElementById("logInPasswordInput");
 
   if (passwordInput.classList.contains("passwordInputImg")) {
-    passwordInput.classList.remove("passwordInputImg");
-    passwordInput.classList.add("lockInputImg");
+    setPasswordState(passwordInput, "passwordInputImg", "lockInputImg");
   } else if (passwordInput.classList.contains("lockInputImg")) {
-    passwordInput.classList.remove("lockInputImg");
-    passwordInput.classList.add("passwordInputFocus");
+    setPasswordState(passwordInput, "lockInputImg", "passwordInputFocus");
   } else if (passwordInput.classList.contains("passwordInputFocus")) {
-    passwordInput.classList.remove("passwordInputFocus");
-    passwordInput.classList.add("passwordInputVisible");
-    passwordInput.type = "text";
+    setPasswordState(passwordInput, "passwordInputFocus", "passwordInputVisible", "text");
   } else if (passwordInput.classList.contains("passwordInputVisible")) {
-    passwordInput.classList.remove("passwordInputVisible");
-    passwordInput.classList.add("passwordInputFocus");
-    passwordInput.type = "password";
+    setPasswordState(passwordInput, "passwordInputVisible", "passwordInputFocus", "password");
   }
+}
+
+/** Changes the icon class and optional input type of the password field. */
+function setPasswordState(input, oldClass, newClass, type) {
+  input.classList.remove(oldClass);
+  input.classList.add(newClass);
+  if (type) input.type = type;
 }
 
 

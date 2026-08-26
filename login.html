@@ -22,9 +22,9 @@
         <h1 class="logIntText">Log in</h1>
         <form onsubmit="findUser(event)">
           <div class="logInInput">
-            <input id="logInEmailInput" class="emailInput" type="email" placeholder="Email" required />
+            <input id="logInEmailInput" class="emailInput" name="email" type="email" placeholder="Email" autocomplete="username" required />
             <div class="logInPasswordContainer">
-              <input onblur="handlepaswordImg(this)" onfocus="handlepaswordStyle(this)" id="logInPasswordInput" class="passwordInput passwordInputImg" type="password" placeholder="Password" required />
+              <input onblur="handlepaswordImg(this)" onfocus="handlepaswordStyle(this)" id="logInPasswordInput" class="passwordInput passwordInputImg" name="password" type="password" placeholder="Password" autocomplete="current-password" required />
               <span class="paswordVisibilityBTN" onclick="handlePaswordVisibility()"></span>
               <span class="passwordAlert dNone">Check your email and password. Please try again.</span>
             </div>

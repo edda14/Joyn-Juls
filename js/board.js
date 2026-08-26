@@ -417,12 +417,26 @@ function getSelectedPriority() {
  * Check each section and add "no results" message if needed
  */
 function searchTasks() {
-    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const searchInput = document.getElementById('searchInput').value.trim().toLowerCase();
     removeExistingNoResultsMessages();
+    toggleEmptyTaskFields(Boolean(searchInput));
+    if (!searchInput) return resetTaskSearch();
     const matches = { triage: false, toDo: false, progress: false,
         feedback: false, done: false };
     document.querySelectorAll('.card').forEach(card => filterTaskCard(card, searchInput, matches));
     addSearchEmptyMessages(matches);
+}
+
+/** Hides regular empty-column fields while a task search is active. */
+function toggleEmptyTaskFields(isSearching) {
+    document.querySelectorAll('.noTasks').forEach(field => {
+        field.style.display = isSearching ? 'none' : 'flex';
+    });
+}
+
+/** Restores every task card after the search input has been cleared. */
+function resetTaskSearch() {
+    document.querySelectorAll('.card').forEach(card => card.style.display = 'flex');
 }
 
 /** Shows a task card when title or description contains the search term. */

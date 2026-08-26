@@ -1346,3 +1346,66 @@ body {
         width: 270px !important;
     }
 }
+
+/* Add-task dialog on the board */
+#addTaskOverlay {
+    box-sizing: border-box;
+    padding: 16px;
+    overflow-y: auto;
+}
+
+#addTaskOverlay .overlayContentAddTask {
+    box-sizing: border-box;
+    height: min(812px, calc(100dvh - 32px));
+    max-height: calc(100dvh - 32px);
+    margin: auto;
+    overflow: hidden;
+}
+
+#addTaskOverlay .innerOverlay {
+    box-sizing: border-box;
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+#addTaskOverlay #board-edit-task-main-input {
+    min-height: 0;
+    margin-bottom: 0;
+}
+
+#addTaskOverlay .at-btn-container,
+#addTaskOverlay .at-btn-container-mobile {
+    position: static;
+    width: 100% !important;
+    height: auto;
+    margin: 32px 0 0 !important;
+    padding: 0 0 4px !important;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    background-color: white;
+}
+
+@media (max-width: 1200px) {
+    #addTaskOverlay .main-input-container {
+        margin-bottom: 0;
+    }
+}
+
+@media (max-width: 650px) {
+    #addTaskOverlay {
+        padding: 8px;
+    }
+
+    #addTaskOverlay .overlayContentAddTask {
+        height: calc(100dvh - 16px);
+        max-height: calc(100dvh - 16px);
+    }
+
+    #addTaskOverlay .at-btn-container,
+    #addTaskOverlay .at-btn-container-mobile {
+        gap: 12px;
+        margin-top: 24px !important;
+    }
+}

@@ -7,13 +7,16 @@ body {
   margin: 0;
   background-color: rgb(246, 247, 248);
   font-family: "inter", sans-serif;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .container {
   position: absolute;
   top: 206px;
   left: 328px;
+  padding-bottom: 64px;
 }
 
 .appHeader {
@@ -222,6 +225,7 @@ body {
   .container {
     top: 131px;
     left: 16px;
+    padding-bottom: 150px;
   }
 }
 @media (max-height: 821px) {

@@ -59,7 +59,17 @@ function renderStakeholderState({ used, limit, limitReached }) {
   document.getElementById("stakeholderLead").hidden = limitReached;
   document.getElementById("normalIllustration").hidden = limitReached;
   document.getElementById("limitIllustration").hidden = !limitReached;
-  document.getElementById("emailRequestButton").textContent = "Create request";
+  updateRequestLink(limitReached);
+}
+
+/** Enables the form link or blocks it after the daily limit is reached. */
+function updateRequestLink(limitReached) {
+  const link = document.getElementById("emailRequestButton");
+  if (!link) return;
+  link.textContent = limitReached ? "Daily limit reached" : "Create request";
+  link.classList.toggle("disabledButton", limitReached);
+  link.setAttribute("aria-disabled", String(limitReached));
+  link.href = limitReached ? "#limitNotice" : "./request.html";
 }
 
 /** Initializes the live counter while retaining a query-based demo mode. */

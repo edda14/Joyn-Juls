@@ -136,6 +136,10 @@ a {
   object-fit: contain;
 }
 
+.roleOption .landingButton {
+  margin-left: 34px;
+}
+
 .landingButton {
   display: inline-flex;
   min-height: 46px;
@@ -163,6 +167,12 @@ a {
   background: #29abe2;
   border-color: #29abe2;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+}
+
+.disabledButton {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .secondaryButton {
@@ -373,6 +383,10 @@ a {
     flex-direction: column;
     align-items: center;
     gap: 17px;
+  }
+
+  .roleOption .landingButton {
+    margin-left: 0;
   }
 
   .roleText {

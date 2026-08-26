@@ -204,11 +204,17 @@
 }
 
 .creatorSection {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 10px;
+    gap: 8px 10px;
     margin-bottom: 24px;
     color: #2a3647;
+    min-width: 0;
+}
+
+.creatorSection > .dueDate {
+    grid-column: 1 / -1;
 }
 
 .creatorBadge {
@@ -220,6 +226,7 @@
     color: #0038a8;
     font-size: 16px;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .creatorBadge svg {
@@ -243,19 +250,23 @@
 .creatorName {
     color: #000;
     font-size: 18px;
-    overflow-wrap: anywhere;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .creatorAction {
     display: inline-flex;
     align-items: center;
+    justify-self: end;
     gap: 6px;
-    margin-left: auto;
     padding: 5px 8px;
     border-radius: 6px;
     color: #42526e;
     font-size: 17px;
     text-decoration: none;
+    white-space: nowrap;
     transition: background-color 120ms ease, color 120ms ease;
 }
 
@@ -263,6 +274,7 @@
     color: #0786b5;
     width: 24px;
     height: 24px;
+    flex: 0 0 24px;
     fill: none;
     stroke: currentColor;
     stroke-width: 1.8;
@@ -286,12 +298,7 @@
 
 @media (max-width: 600px) {
     .creatorSection {
-        align-items: flex-start;
-        flex-wrap: wrap;
-    }
-
-    .creatorAction {
-        margin-left: 0;
+        align-items: center;
     }
 }
 
@@ -329,6 +336,9 @@
 }
 
 .urgencyText {
+    display: inline-flex;
+    align-items: center;
+    gap: 17px;
     font-family: Inter;
     font-size: 20px;
     font-weight: 400;
@@ -338,15 +348,17 @@
 }
 
 .overlayUrgencyImg {
+    display: block;
     width: 17px;
     height: 12px;
-    margin-top: 12px;
-    margin-left: 17px;
+    margin: 0;
+    flex-shrink: 0;
 
 }
 
 .prioDiv {
     display: flex;
+    align-items: center;
     gap: 41px;
     margin-bottom: 25px;
 }
